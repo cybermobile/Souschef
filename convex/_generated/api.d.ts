@@ -8,6 +8,9 @@
  * @module
  */
 
+import type * as actions_dataProcessing from "../actions/dataProcessing.js";
+import type * as actions_documentProcessing from "../actions/documentProcessing.js";
+import type * as actions_embeddings from "../actions/embeddings.js";
 import type * as admin from "../admin.js";
 import type * as apiKeys from "../apiKeys.js";
 import type * as cleanup from "../cleanup.js";
@@ -22,6 +25,8 @@ import type * as lz4 from "../lz4.js";
 import type * as lz4Wasm from "../lz4Wasm.js";
 import type * as messages from "../messages.js";
 import type * as migrations from "../migrations.js";
+import type * as mutations_dataFiles from "../mutations/dataFiles.js";
+import type * as mutations_uploadedDocuments from "../mutations/uploadedDocuments.js";
 import type * as openaiProxy from "../openaiProxy.js";
 import type * as rateLimiter from "../rateLimiter.js";
 import type * as resendProxy from "../resendProxy.js";
@@ -31,6 +36,10 @@ import type * as snapshot from "../snapshot.js";
 import type * as socialShare from "../socialShare.js";
 import type * as subchats from "../subchats.js";
 import type * as summarize from "../summarize.js";
+import type * as tables_dataFiles from "../tables/dataFiles.js";
+import type * as tables_documentTemplates from "../tables/documentTemplates.js";
+import type * as tables_generatedReports from "../tables/generatedReports.js";
+import type * as tables_uploadedDocuments from "../tables/uploadedDocuments.js";
 
 import type {
   ApiFromModules,
@@ -47,6 +56,9 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  "actions/dataProcessing": typeof actions_dataProcessing;
+  "actions/documentProcessing": typeof actions_documentProcessing;
+  "actions/embeddings": typeof actions_embeddings;
   admin: typeof admin;
   apiKeys: typeof apiKeys;
   cleanup: typeof cleanup;
@@ -61,6 +73,8 @@ declare const fullApi: ApiFromModules<{
   lz4Wasm: typeof lz4Wasm;
   messages: typeof messages;
   migrations: typeof migrations;
+  "mutations/dataFiles": typeof mutations_dataFiles;
+  "mutations/uploadedDocuments": typeof mutations_uploadedDocuments;
   openaiProxy: typeof openaiProxy;
   rateLimiter: typeof rateLimiter;
   resendProxy: typeof resendProxy;
@@ -70,6 +84,10 @@ declare const fullApi: ApiFromModules<{
   socialShare: typeof socialShare;
   subchats: typeof subchats;
   summarize: typeof summarize;
+  "tables/dataFiles": typeof tables_dataFiles;
+  "tables/documentTemplates": typeof tables_documentTemplates;
+  "tables/generatedReports": typeof tables_generatedReports;
+  "tables/uploadedDocuments": typeof tables_uploadedDocuments;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 

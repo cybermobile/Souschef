@@ -3,6 +3,12 @@ import { v } from "convex/values";
 import type { Infer, Validator } from "convex/values";
 import type { CoreMessage } from "ai";
 
+// Import document platform tables
+import { documentTemplates } from "./tables/documentTemplates";
+import { uploadedDocuments } from "./tables/uploadedDocuments";
+import { dataFiles } from "./tables/dataFiles";
+import { generatedReports } from "./tables/generatedReports";
+
 export const apiKeyValidator = v.object({
   preference: v.union(v.literal("always"), v.literal("quotaExhausted")),
   // NB: This is the *Anthropic* API key.
@@ -240,4 +246,10 @@ export default defineSchema({
   })
     .index("name", ["name"])
     .index("isDone", ["isDone"]),
+
+  // Document Platform Tables
+  documentTemplates,
+  uploadedDocuments,
+  dataFiles,
+  generatedReports,
 });

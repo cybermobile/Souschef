@@ -9,6 +9,12 @@ import { viewParameters } from './tools/view.js';
 import { editToolParameters } from './tools/edit.js';
 import { loggingSafeParse } from './utils/zodUtil.js';
 import { npmInstallToolParameters } from './tools/npmInstall.js';
+import { processDocumentParameters } from './tools/processDocument.js';
+import { findSimilarTemplatesParameters } from './tools/findSimilarTemplates.js';
+import { rewriteDocumentParameters } from './tools/rewriteDocument.js';
+import { analyzeDataParameters } from './tools/analyzeData.js';
+import { recommendChartsParameters } from './tools/recommendCharts.js';
+import { generateReportParameters } from './tools/generateReport.js';
 import { path } from './utils/path.js';
 
 const MAX_RELEVANT_FILES = 16;
@@ -456,6 +462,60 @@ function abbreviateToolInvocation(toolInvocation: ToolInvocation): string {
     }
     case 'getConvexDeploymentName': {
       toolCall = `retrieved the Convex deployment name`;
+      break;
+    }
+    case 'processDocument': {
+      const args = loggingSafeParse(processDocumentParameters, toolInvocation.args);
+      if (args.success) {
+        toolCall = `processed document ${args.data.fileName}`;
+      } else {
+        toolCall = `attempted to process a document`;
+      }
+      break;
+    }
+    case 'findSimilarTemplates': {
+      const args = loggingSafeParse(findSimilarTemplatesParameters, toolInvocation.args);
+      if (args.success) {
+        toolCall = `searched for similar templates for company ${args.data.companyId}`;
+      } else {
+        toolCall = `attempted to find similar templates`;
+      }
+      break;
+    }
+    case 'rewriteDocument': {
+      const args = loggingSafeParse(rewriteDocumentParameters, toolInvocation.args);
+      if (args.success) {
+        toolCall = `rewrote document using template ${args.data.templateId}`;
+      } else {
+        toolCall = `attempted to rewrite a document`;
+      }
+      break;
+    }
+    case 'analyzeData': {
+      const args = loggingSafeParse(analyzeDataParameters, toolInvocation.args);
+      if (args.success) {
+        toolCall = `analyzed data file ${args.data.fileName}`;
+      } else {
+        toolCall = `attempted to analyze data`;
+      }
+      break;
+    }
+    case 'recommendCharts': {
+      const args = loggingSafeParse(recommendChartsParameters, toolInvocation.args);
+      if (args.success) {
+        toolCall = `recommended charts for ${args.data.analysisGoal} analysis`;
+      } else {
+        toolCall = `attempted to recommend charts`;
+      }
+      break;
+    }
+    case 'generateReport': {
+      const args = loggingSafeParse(generateReportParameters, toolInvocation.args);
+      if (args.success) {
+        toolCall = `generated report "${args.data.reportTitle}"`;
+      } else {
+        toolCall = `attempted to generate a report`;
+      }
       break;
     }
     default:

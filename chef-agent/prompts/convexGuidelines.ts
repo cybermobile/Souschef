@@ -1,4 +1,6 @@
+// eslint-disable-next-line no-restricted-imports
 import { stripIndents } from '../utils/stripIndent.js';
+// eslint-disable-next-line no-restricted-imports
 import type { SystemPromptOptions } from '../types.js';
 
 export function convexGuidelines(options: SystemPromptOptions) {
