@@ -523,7 +523,7 @@ export const Chat = memo(
 
       await Promise.all([
         animateIfPresent('#suggestions', { opacity: 0, display: 'none' }, { duration: 0.1 }),
-        animateIfPresent('#intro', { opacity: 0, display: 'none' }, { duration: 0.2, ease: cubicEasingFn }),
+        animateIfPresent('#intro', { opacity: 0, flex: 1 }, { duration: 0.2, ease: cubicEasingFn }),
         animateIfPresent('#footer', { opacity: 0, display: 'none' }, { duration: 0.2 }),
       ]);
 

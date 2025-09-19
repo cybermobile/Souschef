@@ -269,7 +269,7 @@ export const MessageInput = memo(function MessageInput({
     <div className="relative z-20 mx-auto w-full max-w-chat rounded-xl shadow transition-all duration-200">
       <div className="rounded-xl bg-background-primary/75 backdrop-blur-md">
         {workspaceEnabled && workspaceOpen && (
-          <PromptWorkspace chatStarted={chatStarted} isStreaming={isStreaming} sessionId={resolvedSessionId} />
+          <PromptWorkspace chatStarted={chatStarted} />
         )}
         <div
           className={classNames(

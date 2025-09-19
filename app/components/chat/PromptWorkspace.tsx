@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ComponentType, type ReactNode } from 'react';
+import { useCallback, useMemo, useState, type ComponentType, type ReactNode } from 'react';
 import { Button } from '@ui/Button';
 import type { Id } from '@convex/_generated/dataModel';
 import {
@@ -21,8 +21,6 @@ type WorkspaceTool = 'document' | 'data' | 'templates' | 'charts' | 'reports';
 
 interface PromptWorkspaceProps {
   chatStarted: boolean;
-  isStreaming: boolean;
-  sessionId?: Id<'sessions'>;
 }
 
 interface TemplateSummary {
@@ -60,7 +58,7 @@ const TOOL_COPY: Record<WorkspaceTool, { title: string; description: string }> =
   },
 };
 
-export function PromptWorkspace({ chatStarted, isStreaming, sessionId }: PromptWorkspaceProps) {
+export function PromptWorkspace({ chatStarted }: PromptWorkspaceProps) {
   const [activeTool, setActiveTool] = useState<WorkspaceTool | null>(null);
   const [lastDocumentId, setLastDocumentId] = useState<Id<'uploadedDocuments'> | null>(null);
   const [lastDataFileId, setLastDataFileId] = useState<Id<'dataFiles'> | null>(null);
@@ -176,18 +174,6 @@ export function PromptWorkspace({ chatStarted, isStreaming, sessionId }: PromptW
     setActiveTool((current) => (current === tool ? null : tool));
   }, []);
 
-  useEffect(() => {
-    if (chatStarted) {
-      setActiveTool(null);
-    }
-  }, [chatStarted]);
-
-  useEffect(() => {
-    if (isStreaming) {
-      setActiveTool(null);
-    }
-  }, [isStreaming]);
-
   const resetWorkspace = useCallback(() => {
     setLastDocumentId(null);
     setLastDataFileId(null);
@@ -234,7 +220,6 @@ export function PromptWorkspace({ chatStarted, isStreaming, sessionId }: PromptW
       <div className="space-y-4">
         <DocumentUploader
           className="w-full"
-          sessionId={sessionId}
           onUploadComplete={(documentId) => {
             setLastDocumentId(documentId);
             toast.success('Document uploaded and ready to reference.');
@@ -255,7 +240,6 @@ export function PromptWorkspace({ chatStarted, isStreaming, sessionId }: PromptW
       <div className="space-y-4">
         <DataUploader
           className="w-full"
-          sessionId={sessionId}
           onUploadComplete={(dataFileId) => {
             setLastDataFileId(dataFileId);
             toast.success('Data file ingested for analysis.');
@@ -393,6 +377,40 @@ export function PromptWorkspace({ chatStarted, isStreaming, sessionId }: PromptW
     );
   }
 
+  const summaryItems: Array<{ icon: ReactNode; label: string; description?: string }> = [];
+
+  if (lastDocumentId) {
+    summaryItems.push({
+      icon: <DocumentArrowUpIcon className="size-4" />,
+      label: 'Document processed',
+      description: 'Ready for inline referencing in the next response.',
+    });
+  }
+
+  if (dataPreview) {
+    summaryItems.push({
+      icon: <TableCellsIcon className="size-4" />,
+      label: 'Data profile captured',
+      description: `${dataPreview.headers.length} columns detected for visualization.`,
+    });
+  }
+
+  if (selectedTemplate) {
+    summaryItems.push({
+      icon: <RectangleGroupIcon className="size-4" />,
+      label: 'Template selected',
+      description: selectedTemplate.templateName,
+    });
+  }
+
+  if (chartSummary) {
+    summaryItems.push({
+      icon: <PresentationChartLineIcon className="size-4" />,
+      label: 'Chart configured',
+      description: chartSummary.title || `${chartSummary.type} chart ready to drop into the draft.`,
+    });
+  }
+
   return (
     <div className="rounded-t-xl border border-b-0 bg-background-secondary/60 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -442,6 +460,23 @@ export function PromptWorkspace({ chatStarted, isStreaming, sessionId }: PromptW
             <p className="text-xs text-content-secondary">{TOOL_COPY[activeTool].description}</p>
           </div>
           {activeContent}
+        </div>
+      )}
+
+      {summaryItems.length > 0 && (
+        <div className="mt-4 grid gap-2 text-sm text-content-secondary sm:grid-cols-2">
+          {summaryItems.map((item, index) => (
+            <div
+              key={`${item.label}-${index}`}
+              className="flex items-start gap-2 rounded-lg border border-dashed bg-background-primary/70 px-3 py-2"
+            >
+              <span className="text-content-primary">{item.icon}</span>
+              <div className="text-xs">
+                <p className="text-sm font-medium text-content-primary">{item.label}</p>
+                {item.description && <p className="mt-0.5">{item.description}</p>}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
