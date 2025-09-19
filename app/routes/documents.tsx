@@ -18,7 +18,7 @@ export const loader = async (args: LoaderFunctionArgs) => {
   // For now, return empty data
   return json({
     documents: [],
-    processingQueue: []
+    processingQueue: [],
   });
 };
 
@@ -31,17 +31,17 @@ export default function Documents() {
       <div className="flex-1 p-6">
         <div className="mx-auto max-w-7xl">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-bolt-elements-textPrimary">Document Library</h1>
-            <p className="mt-2 text-bolt-elements-textSecondary">
+            <h1 className="text-bolt-elements-textPrimary text-3xl font-bold">Document Library</h1>
+            <p className="text-bolt-elements-textSecondary mt-2">
               Upload documents for AI-powered processing, template matching, and analysis
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             {/* Upload Section */}
             <div className="lg:col-span-2">
-              <div className="bg-bolt-elements-background-depth-2 rounded-lg p-6 border border-bolt-elements-borderColor">
-                <h2 className="text-xl font-semibold text-bolt-elements-textPrimary mb-4">Upload Documents</h2>
+              <div className="border-bolt-elements-borderColor rounded-lg border bg-bolt-elements-background-depth-2 p-6">
+                <h2 className="text-bolt-elements-textPrimary mb-4 text-xl font-semibold">Upload Documents</h2>
                 <ClientOnly>
                   {() => (
                     <DocumentUploader
@@ -56,10 +56,10 @@ export default function Documents() {
               </div>
 
               {/* Documents List */}
-              <div className="mt-8 bg-bolt-elements-background-depth-2 rounded-lg p-6 border border-bolt-elements-borderColor">
-                <h2 className="text-xl font-semibold text-bolt-elements-textPrimary mb-4">Your Documents</h2>
+              <div className="border-bolt-elements-borderColor mt-8 rounded-lg border bg-bolt-elements-background-depth-2 p-6">
+                <h2 className="text-bolt-elements-textPrimary mb-4 text-xl font-semibold">Your Documents</h2>
                 {documents.length === 0 ? (
-                  <div className="text-center py-8">
+                  <div className="py-8 text-center">
                     <div className="text-bolt-elements-textSecondary">
                       No documents uploaded yet. Upload your first document to get started!
                     </div>
@@ -67,20 +67,22 @@ export default function Documents() {
                 ) : (
                   <div className="space-y-4">
                     {documents.map((doc: any) => (
-                      <div key={doc.id} className="p-4 border border-bolt-elements-borderColor rounded-lg">
-                        <h3 className="font-medium text-bolt-elements-textPrimary">{doc.fileName}</h3>
-                        <p className="text-sm text-bolt-elements-textSecondary mt-1">{doc.fileType}</p>
+                      <div key={doc.id} className="border-bolt-elements-borderColor rounded-lg border p-4">
+                        <h3 className="text-bolt-elements-textPrimary font-medium">{doc.fileName}</h3>
+                        <p className="text-bolt-elements-textSecondary mt-1 text-sm">{doc.fileType}</p>
                         <div className="mt-2 flex items-center space-x-4">
-                          <span className={`px-2 py-1 text-xs rounded-full ${
-                            doc.status === 'completed'
-                              ? 'bg-green-100 text-green-800'
-                              : doc.status === 'processing'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}>
+                          <span
+                            className={`rounded-full px-2 py-1 text-xs ${
+                              doc.status === 'completed'
+                                ? 'bg-green-100 text-green-800'
+                                : doc.status === 'processing'
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-red-100 text-red-800'
+                            }`}
+                          >
                             {doc.status}
                           </span>
-                          <span className="text-xs text-bolt-elements-textSecondary">
+                          <span className="text-bolt-elements-textSecondary text-xs">
                             {new Date(doc.uploadedAt).toLocaleDateString()}
                           </span>
                         </div>
@@ -93,33 +95,26 @@ export default function Documents() {
 
             {/* Processing Status Sidebar */}
             <div className="lg:col-span-1">
-              <div className="bg-bolt-elements-background-depth-2 rounded-lg p-6 border border-bolt-elements-borderColor">
-                <h2 className="text-xl font-semibold text-bolt-elements-textPrimary mb-4">Processing Status</h2>
-                <ClientOnly>
-                  {() => (
-                    <ProcessingStatus
-                      files={processingQueue}
-                      className="space-y-3"
-                    />
-                  )}
-                </ClientOnly>
+              <div className="border-bolt-elements-borderColor rounded-lg border bg-bolt-elements-background-depth-2 p-6">
+                <h2 className="text-bolt-elements-textPrimary mb-4 text-xl font-semibold">Processing Status</h2>
+                <ClientOnly>{() => <ProcessingStatus files={processingQueue} className="space-y-3" />}</ClientOnly>
               </div>
 
               {/* Quick Stats */}
-              <div className="mt-6 bg-bolt-elements-background-depth-2 rounded-lg p-6 border border-bolt-elements-borderColor">
-                <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Quick Stats</h3>
+              <div className="border-bolt-elements-borderColor mt-6 rounded-lg border bg-bolt-elements-background-depth-2 p-6">
+                <h3 className="text-bolt-elements-textPrimary mb-4 text-lg font-medium">Quick Stats</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-bolt-elements-textSecondary">Total Documents</span>
-                    <span className="font-medium text-bolt-elements-textPrimary">{documents.length}</span>
+                    <span className="text-bolt-elements-textPrimary font-medium">{documents.length}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-bolt-elements-textSecondary">Processing</span>
-                    <span className="font-medium text-bolt-elements-textPrimary">{processingQueue.length}</span>
+                    <span className="text-bolt-elements-textPrimary font-medium">{processingQueue.length}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-bolt-elements-textSecondary">Completed</span>
-                    <span className="font-medium text-bolt-elements-textPrimary">
+                    <span className="text-bolt-elements-textPrimary font-medium">
                       {documents.filter((d: any) => d.status === 'completed').length}
                     </span>
                   </div>

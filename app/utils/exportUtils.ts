@@ -35,56 +35,88 @@ export const exportToHTML = (data: ExportData): void => {
     <body>
       <h1>${data.title}</h1>
 
-      ${data.metadata ? `
+      ${
+        data.metadata
+          ? `
         <div class="metadata">
           ${data.metadata.author ? `<p><strong>Author:</strong> ${data.metadata.author}</p>` : ''}
           ${data.metadata.department ? `<p><strong>Department:</strong> ${data.metadata.department}</p>` : ''}
           ${data.metadata.createdDate ? `<p><strong>Created:</strong> ${new Date(data.metadata.createdDate).toLocaleDateString()}</p>` : ''}
         </div>
-      ` : ''}
+      `
+          : ''
+      }
 
       <div class="content">
         ${data.content}
       </div>
 
-      ${data.charts && data.charts.length > 0 ? `
+      ${
+        data.charts && data.charts.length > 0
+          ? `
         <div class="charts">
           <h2>Charts and Visualizations</h2>
-          ${data.charts.map(chart => `
+          ${data.charts
+            .map(
+              (chart) => `
             <div class="chart">
               <h3>${chart.title || 'Chart'}</h3>
               <p>${chart.description || 'Chart visualization would appear here'}</p>
             </div>
-          `).join('')}
+          `,
+            )
+            .join('')}
         </div>
-      ` : ''}
+      `
+          : ''
+      }
 
-      ${data.tables && data.tables.length > 0 ? `
+      ${
+        data.tables && data.tables.length > 0
+          ? `
         <div class="tables">
           <h2>Data Tables</h2>
-          ${data.tables.map(table => `
+          ${data.tables
+            .map(
+              (table) => `
             <div class="table">
               <h3>${table.title || 'Table'}</h3>
               <table border="1" style="border-collapse: collapse; width: 100%;">
-                ${table.headers ? `
+                ${
+                  table.headers
+                    ? `
                   <thead>
                     <tr>
                       ${table.headers.map((header: string) => `<th style="padding: 8px; background: #f8f9fa;">${header}</th>`).join('')}
                     </tr>
                   </thead>
-                ` : ''}
+                `
+                    : ''
+                }
                 <tbody>
-                  ${table.data ? table.data.map((row: any[]) => `
+                  ${
+                    table.data
+                      ? table.data
+                          .map(
+                            (row: any[]) => `
                     <tr>
-                      ${row.map(cell => `<td style="padding: 8px; border: 1px solid #ddd;">${cell}</td>`).join('')}
+                      ${row.map((cell) => `<td style="padding: 8px; border: 1px solid #ddd;">${cell}</td>`).join('')}
                     </tr>
-                  `).join('') : ''}
+                  `,
+                          )
+                          .join('')
+                      : ''
+                  }
                 </tbody>
               </table>
             </div>
-          `).join('')}
+          `,
+            )
+            .join('')}
         </div>
-      ` : ''}
+      `
+          : ''
+      }
 
       <div class="footer">
         <p>Generated with SousChef Document Platform - ${new Date().toLocaleDateString()}</p>
@@ -123,12 +155,16 @@ export const exportToPDF = (data: ExportData): void => {
       </head>
       <body>
         <h1>${data.title}</h1>
-        ${data.metadata ? `
+        ${
+          data.metadata
+            ? `
           <div class="metadata">
             ${data.metadata.author ? `<p><strong>Author:</strong> ${data.metadata.author}</p>` : ''}
             ${data.metadata.department ? `<p><strong>Department:</strong> ${data.metadata.department}</p>` : ''}
           </div>
-        ` : ''}
+        `
+            : ''
+        }
         <div>${data.content}</div>
       </body>
       </html>

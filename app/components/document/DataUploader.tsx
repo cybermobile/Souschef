@@ -41,14 +41,17 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
   // const uploadDataFile = useMutation(api.dataFiles.uploadDataFile);
 
   const detectColumnType = (values: any[]): string => {
-    const nonEmptyValues = values.filter(v => v !== null && v !== undefined && v !== '');
-    if (nonEmptyValues.length === 0) return 'string';
+    const nonEmptyValues = values.filter((v) => v !== null && v !== undefined && v !== '');
+    if (nonEmptyValues.length === 0) {
+      return 'string';
+    }
 
     let numberCount = 0;
     let dateCount = 0;
     let booleanCount = 0;
 
-    for (const value of nonEmptyValues.slice(0, 10)) { // Sample first 10 values
+    for (const value of nonEmptyValues.slice(0, 10)) {
+      // Sample first 10 values
       const strValue = String(value).toLowerCase().trim();
 
       // Check boolean
@@ -66,9 +69,15 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
     }
 
     const total = nonEmptyValues.length;
-    if (booleanCount / total > 0.8) return 'boolean';
-    if (numberCount / total > 0.8) return 'number';
-    if (dateCount / total > 0.8) return 'date';
+    if (booleanCount / total > 0.8) {
+      return 'boolean';
+    }
+    if (numberCount / total > 0.8) {
+      return 'number';
+    }
+    if (dateCount / total > 0.8) {
+      return 'date';
+    }
     return 'string';
   };
 
@@ -84,8 +93,8 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
 
             // Analyze column types
             const columnTypes: { [key: string]: string } = {};
-            headers.forEach(header => {
-              const columnValues = rows.map(row => row[header]);
+            headers.forEach((header) => {
+              const columnValues = rows.map((row) => row[header]);
               columnTypes[header] = detectColumnType(columnValues);
             });
 
@@ -93,7 +102,7 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
               fileName: file.name,
               fileType: 'csv',
               headers,
-              sampleRows: rows.slice(0, 5).map(row => headers.map(h => row[h])),
+              sampleRows: rows.slice(0, 5).map((row) => headers.map((h) => row[h])),
               totalRows: rows.length,
               columnTypes,
             };
@@ -130,13 +139,15 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
             return;
           }
 
-          const headers = jsonData[0].map(h => String(h || ''));
-          const dataRows = jsonData.slice(1).filter(row => row.some(cell => cell !== null && cell !== undefined && cell !== ''));
+          const headers = jsonData[0].map((h) => String(h || ''));
+          const dataRows = jsonData
+            .slice(1)
+            .filter((row) => row.some((cell) => cell !== null && cell !== undefined && cell !== ''));
 
           // Analyze column types
           const columnTypes: { [key: string]: string } = {};
           headers.forEach((header, index) => {
-            const columnValues = dataRows.map(row => row[index]);
+            const columnValues = dataRows.map((row) => row[index]);
             columnTypes[header] = detectColumnType(columnValues);
           });
 
@@ -159,69 +170,73 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
     });
   };
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    if (acceptedFiles.length === 0) return;
-
-    const file = acceptedFiles[0];
-    setUploading(true);
-    setProgress(0);
-    setDataPreview(null);
-
-    try {
-      // Step 1: Parse and analyze the file
-      setProcessingStep('Parsing file...');
-      setProgress(20);
-
-      let preview: DataPreview;
-      if (file.name.toLowerCase().endsWith('.csv')) {
-        preview = await parseCSV(file);
-      } else if (file.name.toLowerCase().match(/\.(xlsx|xls)$/)) {
-        preview = await parseExcel(file);
-      } else {
-        throw new Error('Unsupported file format');
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      if (acceptedFiles.length === 0) {
+        return;
       }
 
-      setProgress(50);
-      setDataPreview(preview);
-      onDataPreview?.(preview);
+      const file = acceptedFiles[0];
+      setUploading(true);
+      setProgress(0);
+      setDataPreview(null);
 
-      // Step 2: Upload to Convex
-      setProcessingStep('Uploading to server...');
-      setProgress(70);
+      try {
+        // Step 1: Parse and analyze the file
+        setProcessingStep('Parsing file...');
+        setProgress(20);
 
-      // TODO: Replace with actual Convex upload
-      // const dataFileId = await uploadDataFile({
-      //   companyId,
-      //   sessionId,
-      //   fileName: file.name,
-      //   fileType: preview.fileType,
-      //   fileSize: file.size,
-      //   headers: preview.headers,
-      //   columnTypes: preview.columnTypes,
-      //   totalRows: preview.totalRows,
-      // });
+        let preview: DataPreview;
+        if (file.name.toLowerCase().endsWith('.csv')) {
+          preview = await parseCSV(file);
+        } else if (file.name.toLowerCase().match(/\.(xlsx|xls)$/)) {
+          preview = await parseExcel(file);
+        } else {
+          throw new Error('Unsupported file format');
+        }
 
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate upload
+        setProgress(50);
+        setDataPreview(preview);
+        onDataPreview?.(preview);
 
-      setProgress(100);
-      setProcessingStep('Complete!');
+        // Step 2: Upload to Convex
+        setProcessingStep('Uploading to server...');
+        setProgress(70);
 
-      // Mock data file ID
-      const mockDataFileId = `data_${Date.now()}`;
-      onUploadComplete(mockDataFileId);
+        // TODO: Replace with actual Convex upload
+        // const dataFileId = await uploadDataFile({
+        //   companyId,
+        //   sessionId,
+        //   fileName: file.name,
+        //   fileType: preview.fileType,
+        //   fileSize: file.size,
+        //   headers: preview.headers,
+        //   columnTypes: preview.columnTypes,
+        //   totalRows: preview.totalRows,
+        // });
 
-    } catch (error) {
-      console.error('Data upload failed:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Upload failed';
-      onUploadError?.(errorMessage);
-    } finally {
-      setTimeout(() => {
-        setUploading(false);
-        setProgress(0);
-        setProcessingStep('');
-      }, 2000);
-    }
-  }, [companyId, sessionId, onUploadComplete, onUploadError, onDataPreview]);
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate upload
+
+        setProgress(100);
+        setProcessingStep('Complete!');
+
+        // Mock data file ID
+        const mockDataFileId = `data_${Date.now()}`;
+        onUploadComplete(mockDataFileId);
+      } catch (error) {
+        console.error('Data upload failed:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+        onUploadError?.(errorMessage);
+      } finally {
+        setTimeout(() => {
+          setUploading(false);
+          setProgress(0);
+          setProcessingStep('');
+        }, 2000);
+      }
+    },
+    [companyId, sessionId, onUploadComplete, onUploadError, onDataPreview],
+  );
 
   const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
     onDrop,
@@ -236,7 +251,9 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
   });
 
   const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) {
+      return '0 Bytes';
+    }
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -248,8 +265,8 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
       <div
         {...getRootProps()}
         className={`
-          border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-200
-          ${isDragActive ? 'border-green-400 bg-green-50 scale-102' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'}
+          cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-all duration-200
+          ${isDragActive ? 'scale-102 border-green-400 bg-green-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'}
           ${uploading ? 'pointer-events-none opacity-70' : ''}
           ${fileRejections.length > 0 ? 'border-red-400 bg-red-50' : ''}
         `}
@@ -259,16 +276,20 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
         {uploading ? (
           <div className="space-y-4">
             <div className="flex justify-center">
-              <svg className="animate-spin h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24">
+              <svg className="size-8 animate-spin text-green-600" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
               </svg>
             </div>
             <div className="space-y-2">
               <p className="text-sm font-medium text-gray-700">{processingStep}</p>
-              <div className="w-full bg-gray-200 rounded-full h-3">
+              <div className="h-3 w-full rounded-full bg-gray-200">
                 <div
-                  className="bg-green-600 h-3 rounded-full transition-all duration-300"
+                  className="h-3 rounded-full bg-green-600 transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 ></div>
               </div>
@@ -277,14 +298,24 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="mx-auto h-16 w-16 text-gray-400">
+            <div className="mx-auto size-16 text-gray-400">
               {isDragActive ? (
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="text-green-500">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
                 </svg>
               ) : (
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
                 </svg>
               )}
             </div>
@@ -292,10 +323,10 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
               <p className="text-lg font-medium text-gray-900">
                 {isDragActive ? 'Drop your data file here' : 'Upload data for visualization'}
               </p>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="mt-1 text-sm text-gray-500">
                 {isDragActive ? 'Release to analyze' : 'Drag and drop or click to select'}
               </p>
-              <p className="text-xs text-gray-400 mt-2">
+              <p className="mt-2 text-xs text-gray-400">
                 Supports: CSV, Excel (.xlsx, .xls) (max {formatFileSize(maxSize)})
               </p>
             </div>
@@ -305,9 +336,9 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
 
       {/* Data Preview */}
       {dataPreview && !uploading && (
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-gray-900 mb-3">Data Preview</h3>
-          <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <h3 className="mb-3 text-sm font-medium text-gray-900">Data Preview</h3>
+          <div className="mb-4 grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-gray-500">File:</span> {dataPreview.fileName}
             </div>
@@ -321,12 +352,10 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
               <thead>
                 <tr className="border-b border-gray-200">
                   {dataPreview.headers.map((header, index) => (
-                    <th key={index} className="text-left py-2 px-3 font-medium text-gray-700">
+                    <th key={index} className="px-3 py-2 text-left font-medium text-gray-700">
                       <div>
                         {header}
-                        <div className="text-gray-400 font-normal">
-                          ({dataPreview.columnTypes[header]})
-                        </div>
+                        <div className="font-normal text-gray-400">({dataPreview.columnTypes[header]})</div>
                       </div>
                     </th>
                   ))}
@@ -336,7 +365,7 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
                 {dataPreview.sampleRows.map((row, rowIndex) => (
                   <tr key={rowIndex} className="border-b border-gray-100">
                     {row.map((cell, cellIndex) => (
-                      <td key={cellIndex} className="py-2 px-3 text-gray-600">
+                      <td key={cellIndex} className="px-3 py-2 text-gray-600">
                         {String(cell || '').substring(0, 50)}
                         {String(cell || '').length > 50 && '...'}
                       </td>
@@ -351,17 +380,22 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
 
       {/* Error messages */}
       {fileRejections.length > 0 && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+        <div className="rounded-md border border-red-200 bg-red-50 p-3">
           <div className="flex">
-            <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg className="size-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <div className="ml-3">
               <h3 className="text-sm font-medium text-red-800">Upload Error</h3>
               <div className="mt-1 text-sm text-red-700">
                 {fileRejections.map(({ file, errors }) => (
                   <div key={file.name}>
-                    <strong>{file.name}</strong>: {errors.map(e => e.message).join(', ')}
+                    <strong>{file.name}</strong>: {errors.map((e) => e.message).join(', ')}
                   </div>
                 ))}
               </div>

@@ -62,6 +62,34 @@ export function Header({ hideSidebarIcon = false }: { hideSidebarIcon?: boolean 
         <a href="/">
           <img src="/chef.svg" alt="Chef logo" width={72} height={42} className="relative -top-1" />
         </a>
+
+        {/* Navigation Links */}
+        <nav className="ml-8 flex items-center space-x-6">
+          <a
+            href="/documents"
+            className="text-sm font-medium text-content-secondary hover:text-content-primary transition-colors"
+          >
+            Documents
+          </a>
+          <a
+            href="/templates"
+            className="text-sm font-medium text-content-secondary hover:text-content-primary transition-colors"
+          >
+            Templates
+          </a>
+          <a
+            href="/visualize"
+            className="text-sm font-medium text-content-secondary hover:text-content-primary transition-colors"
+          >
+            Visualize
+          </a>
+          <a
+            href="/reports"
+            className="text-sm font-medium text-content-secondary hover:text-content-primary transition-colors"
+          >
+            Reports
+          </a>
+        </nav>
       </div>
       <>
         {chat.started && (

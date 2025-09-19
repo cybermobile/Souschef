@@ -27,8 +27,8 @@ export const loader = async (args: LoaderFunctionArgs) => {
         usageCount: 45,
         structure: {
           sections: ['Executive Summary', 'Key Findings', 'Recommendations', 'Next Steps'],
-          estimatedLength: '3-5 pages'
-        }
+          estimatedLength: '3-5 pages',
+        },
       },
       {
         id: '2',
@@ -40,8 +40,8 @@ export const loader = async (args: LoaderFunctionArgs) => {
         usageCount: 32,
         structure: {
           sections: ['Financial Summary', 'Performance Analysis', 'Variance Explanation', 'Outlook'],
-          estimatedLength: '4-6 pages'
-        }
+          estimatedLength: '4-6 pages',
+        },
       },
       {
         id: '3',
@@ -53,15 +53,15 @@ export const loader = async (args: LoaderFunctionArgs) => {
         usageCount: 28,
         structure: {
           sections: ['Project Overview', 'Status Update', 'Issues & Risks', 'Next Milestones'],
-          estimatedLength: '2-3 pages'
-        }
-      }
+          estimatedLength: '2-3 pages',
+        },
+      },
     ],
     categories: ['Business', 'Finance', 'Operations', 'Technical', 'Marketing', 'Legal'],
     searchFilters: {
       type: ['report', 'proposal', 'memo', 'analysis', 'project', 'financial'],
-      industry: ['technology', 'finance', 'healthcare', 'manufacturing', 'retail']
-    }
+      industry: ['technology', 'finance', 'healthcare', 'manufacturing', 'retail'],
+    },
   });
 };
 
@@ -74,29 +74,29 @@ export default function Templates() {
       <div className="flex-1 p-6">
         <div className="mx-auto max-w-7xl">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-bolt-elements-textPrimary">Template Gallery</h1>
-            <p className="mt-2 text-bolt-elements-textSecondary">
+            <h1 className="text-bolt-elements-textPrimary text-3xl font-bold">Template Gallery</h1>
+            <p className="text-bolt-elements-textSecondary mt-2">
               Browse and discover document templates with AI-powered matching for your content
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
             {/* Filters Sidebar */}
             <div className="lg:col-span-1">
-              <div className="bg-bolt-elements-background-depth-2 rounded-lg p-6 border border-bolt-elements-borderColor">
-                <h3 className="text-lg font-medium text-bolt-elements-textPrimary mb-4">Filter Templates</h3>
+              <div className="border-bolt-elements-borderColor rounded-lg border bg-bolt-elements-background-depth-2 p-6">
+                <h3 className="text-bolt-elements-textPrimary mb-4 text-lg font-medium">Filter Templates</h3>
 
                 {/* Category Filter */}
                 <div className="mb-6">
-                  <h4 className="text-sm font-medium text-bolt-elements-textPrimary mb-2">Category</h4>
+                  <h4 className="text-bolt-elements-textPrimary mb-2 text-sm font-medium">Category</h4>
                   <div className="space-y-2">
                     {categories.map((category) => (
                       <label key={category} className="flex items-center">
                         <input
                           type="checkbox"
-                          className="rounded border-bolt-elements-borderColor text-bolt-elements-focus"
+                          className="border-bolt-elements-borderColor text-bolt-elements-focus rounded"
                         />
-                        <span className="ml-2 text-sm text-bolt-elements-textSecondary">{category}</span>
+                        <span className="text-bolt-elements-textSecondary ml-2 text-sm">{category}</span>
                       </label>
                     ))}
                   </div>
@@ -104,31 +104,31 @@ export default function Templates() {
 
                 {/* Document Type Filter */}
                 <div className="mb-6">
-                  <h4 className="text-sm font-medium text-bolt-elements-textPrimary mb-2">Document Type</h4>
+                  <h4 className="text-bolt-elements-textPrimary mb-2 text-sm font-medium">Document Type</h4>
                   <div className="space-y-2">
                     {searchFilters.type.map((type) => (
                       <label key={type} className="flex items-center">
                         <input
                           type="checkbox"
-                          className="rounded border-bolt-elements-borderColor text-bolt-elements-focus"
+                          className="border-bolt-elements-borderColor text-bolt-elements-focus rounded"
                         />
-                        <span className="ml-2 text-sm text-bolt-elements-textSecondary capitalize">{type}</span>
+                        <span className="text-bolt-elements-textSecondary ml-2 text-sm capitalize">{type}</span>
                       </label>
                     ))}
                   </div>
                 </div>
 
                 {/* Usage Stats */}
-                <div className="mt-8 pt-6 border-t border-bolt-elements-borderColor">
-                  <h4 className="text-sm font-medium text-bolt-elements-textPrimary mb-3">Template Stats</h4>
+                <div className="border-bolt-elements-borderColor mt-8 border-t pt-6">
+                  <h4 className="text-bolt-elements-textPrimary mb-3 text-sm font-medium">Template Stats</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-bolt-elements-textSecondary">Total Templates</span>
-                      <span className="font-medium text-bolt-elements-textPrimary">{templates.length}</span>
+                      <span className="text-bolt-elements-textPrimary font-medium">{templates.length}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-bolt-elements-textSecondary">Categories</span>
-                      <span className="font-medium text-bolt-elements-textPrimary">{categories.length}</span>
+                      <span className="text-bolt-elements-textPrimary font-medium">{categories.length}</span>
                     </div>
                   </div>
                 </div>
@@ -137,20 +137,20 @@ export default function Templates() {
 
             {/* Templates Grid */}
             <div className="lg:col-span-3">
-              <div className="mb-6 flex justify-between items-center">
+              <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <input
                     type="text"
                     placeholder="Search templates..."
-                    className="px-4 py-2 border border-bolt-elements-borderColor rounded-lg bg-bolt-elements-background-depth-1 text-bolt-elements-textPrimary placeholder-bolt-elements-textSecondary focus:outline-none focus:ring-2 focus:ring-bolt-elements-focus"
+                    className="border-bolt-elements-borderColor text-bolt-elements-textPrimary placeholder:text-bolt-elements-textSecondary focus:ring-bolt-elements-focus rounded-lg border bg-bolt-elements-background-depth-1 px-4 py-2 focus:outline-none focus:ring-2"
                   />
-                  <select className="px-3 py-2 border border-bolt-elements-borderColor rounded-lg bg-bolt-elements-background-depth-1 text-bolt-elements-textPrimary focus:outline-none focus:ring-2 focus:ring-bolt-elements-focus">
+                  <select className="border-bolt-elements-borderColor text-bolt-elements-textPrimary focus:ring-bolt-elements-focus rounded-lg border bg-bolt-elements-background-depth-1 px-3 py-2 focus:outline-none focus:ring-2">
                     <option>Sort by Relevance</option>
                     <option>Sort by Usage</option>
                     <option>Sort by Date</option>
                   </select>
                 </div>
-                <button className="px-4 py-2 bg-bolt-elements-button-primary-background hover:bg-bolt-elements-button-primary-backgroundHover text-bolt-elements-button-primary-text rounded-lg font-medium">
+                <button className="rounded-lg bg-bolt-elements-button-primary-background px-4 py-2 font-medium text-bolt-elements-button-primary-text hover:bg-bolt-elements-button-primary-backgroundHover">
                   Upload Template
                 </button>
               </div>
@@ -163,25 +163,28 @@ export default function Templates() {
                       console.log('Template selected:', template);
                       // TODO: Handle template selection
                     }}
-                    className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                    className="grid grid-cols-1 gap-6 md:grid-cols-2"
                   />
                 )}
               </ClientOnly>
 
               {/* Template Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
                 {templates.map((template) => (
-                  <div key={template.id} className="bg-bolt-elements-background-depth-2 rounded-lg p-6 border border-bolt-elements-borderColor hover:border-bolt-elements-focus transition-colors">
-                    <div className="flex justify-between items-start mb-4">
-                      <h3 className="text-lg font-semibold text-bolt-elements-textPrimary">{template.templateName}</h3>
-                      <span className="px-2 py-1 bg-bolt-elements-background-depth-3 text-bolt-elements-textSecondary text-xs rounded-full">
+                  <div
+                    key={template.id}
+                    className="border-bolt-elements-borderColor hover:border-bolt-elements-focus rounded-lg border bg-bolt-elements-background-depth-2 p-6 transition-colors"
+                  >
+                    <div className="mb-4 flex items-start justify-between">
+                      <h3 className="text-bolt-elements-textPrimary text-lg font-semibold">{template.templateName}</h3>
+                      <span className="text-bolt-elements-textSecondary rounded-full bg-bolt-elements-background-depth-3 px-2 py-1 text-xs">
                         {template.category}
                       </span>
                     </div>
 
-                    <p className="text-bolt-elements-textSecondary text-sm mb-4">{template.description}</p>
+                    <p className="text-bolt-elements-textSecondary mb-4 text-sm">{template.description}</p>
 
-                    <div className="space-y-2 mb-4">
+                    <div className="mb-4 space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-bolt-elements-textSecondary">Document Type:</span>
                         <span className="text-bolt-elements-textPrimary capitalize">{template.documentType}</span>
@@ -197,30 +200,33 @@ export default function Templates() {
                     </div>
 
                     <div className="mb-4">
-                      <h4 className="text-sm font-medium text-bolt-elements-textPrimary mb-2">Sections:</h4>
+                      <h4 className="text-bolt-elements-textPrimary mb-2 text-sm font-medium">Sections:</h4>
                       <div className="flex flex-wrap gap-1">
                         {template.structure.sections.slice(0, 3).map((section, index) => (
-                          <span key={index} className="px-2 py-1 bg-bolt-elements-background-depth-1 text-bolt-elements-textSecondary text-xs rounded">
+                          <span
+                            key={index}
+                            className="text-bolt-elements-textSecondary rounded bg-bolt-elements-background-depth-1 px-2 py-1 text-xs"
+                          >
                             {section}
                           </span>
                         ))}
                         {template.structure.sections.length > 3 && (
-                          <span className="px-2 py-1 bg-bolt-elements-background-depth-1 text-bolt-elements-textSecondary text-xs rounded">
+                          <span className="text-bolt-elements-textSecondary rounded bg-bolt-elements-background-depth-1 px-2 py-1 text-xs">
                             +{template.structure.sections.length - 3} more
                           </span>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-bolt-elements-textSecondary">
+                    <div className="flex items-center justify-between">
+                      <span className="text-bolt-elements-textSecondary text-xs">
                         Updated {new Date(template.lastUpdated).toLocaleDateString()}
                       </span>
                       <div className="flex space-x-2">
-                        <button className="px-3 py-1 text-sm border border-bolt-elements-borderColor text-bolt-elements-textPrimary rounded hover:bg-bolt-elements-background-depth-3 transition-colors">
+                        <button className="border-bolt-elements-borderColor text-bolt-elements-textPrimary rounded border px-3 py-1 text-sm transition-colors hover:bg-bolt-elements-background-depth-3">
                           Preview
                         </button>
-                        <button className="px-3 py-1 text-sm bg-bolt-elements-button-primary-background hover:bg-bolt-elements-button-primary-backgroundHover text-bolt-elements-button-primary-text rounded">
+                        <button className="rounded bg-bolt-elements-button-primary-background px-3 py-1 text-sm text-bolt-elements-button-primary-text hover:bg-bolt-elements-button-primary-backgroundHover">
                           Use Template
                         </button>
                       </div>

@@ -89,7 +89,8 @@ const createMockReport = (): Report => ({
       {
         id: 'exec_summary',
         title: 'Executive Summary',
-        content: 'Q3 sales performance exceeded expectations with a 23% increase over Q2, driven primarily by strong performance in the digital channels and successful product launches.',
+        content:
+          'Q3 sales performance exceeded expectations with a 23% increase over Q2, driven primarily by strong performance in the digital channels and successful product launches.',
         order: 1,
         type: 'text',
       },
@@ -104,12 +105,14 @@ const createMockReport = (): Report => ({
       {
         id: 'analysis',
         title: 'Detailed Analysis',
-        content: 'The growth was primarily driven by increased digital adoption, with online sales accounting for 68% of total revenue. Mobile sales specifically grew by 45% compared to Q2.',
+        content:
+          'The growth was primarily driven by increased digital adoption, with online sales accounting for 68% of total revenue. Mobile sales specifically grew by 45% compared to Q2.',
         order: 3,
         type: 'text',
       },
     ],
-    executiveSummary: 'Q3 delivered strong growth across all key metrics, with particular strength in digital channels.',
+    executiveSummary:
+      'Q3 delivered strong growth across all key metrics, with particular strength in digital channels.',
     keyFindings: [
       {
         finding: 'Digital sales increased 45% over Q2',
@@ -190,10 +193,14 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 
   const getPriorityColor = (priority: 'high' | 'medium' | 'low'): string => {
     switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800 border-red-200';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'low': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'high':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'low':
+        return 'bg-green-100 text-green-800 border-green-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
@@ -207,12 +214,12 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
   return (
     <div className={`bg-white ${className}`}>
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
+      <div className="sticky top-0 z-10 border-b border-gray-200 bg-white">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{report.reportName}</h1>
-              <div className="flex items-center space-x-4 mt-1 text-sm text-gray-500">
+              <div className="mt-1 flex items-center space-x-4 text-sm text-gray-500">
                 <span>v{report.metadata.version}</span>
                 <span>•</span>
                 <span>Modified {formatDate(report.metadata.lastModified)}</span>
@@ -226,20 +233,20 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
               <div className="flex rounded-md shadow-sm">
                 <button
                   onClick={() => setViewMode('read')}
-                  className={`px-3 py-2 text-sm font-medium rounded-l-md border ${
+                  className={`rounded-l-md border px-3 py-2 text-sm font-medium ${
                     viewMode === 'read'
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                      ? 'border-blue-600 bg-blue-600 text-white'
+                      : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   Read
                 </button>
                 <button
                   onClick={() => setViewMode('print')}
-                  className={`px-3 py-2 text-sm font-medium rounded-r-md border-t border-r border-b ${
+                  className={`rounded-r-md border-y border-r px-3 py-2 text-sm font-medium ${
                     viewMode === 'print'
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                      ? 'border-blue-600 bg-blue-600 text-white'
+                      : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   Print
@@ -249,10 +256,15 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
               {/* Table of Contents */}
               <button
                 onClick={() => setShowTOC(!showTOC)}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                <svg className="mr-2 size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 10h16M4 14h16M4 18h16"
+                  />
                 </svg>
                 TOC
               </button>
@@ -261,10 +273,12 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
               <div className="relative inline-block text-left">
                 <select
                   onChange={(e) => onExport?.(e.target.value as any)}
-                  className="inline-flex justify-center w-full px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                   defaultValue=""
                 >
-                  <option value="" disabled>Export as...</option>
+                  <option value="" disabled>
+                    Export as...
+                  </option>
                   {exportFormats.map((format) => (
                     <option key={format.value} value={format.value}>
                       {format.icon} {format.label}
@@ -277,10 +291,15 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
               {onShare && (
                 <button
                   onClick={onShare}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                  className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                 >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                  <svg className="mr-2 size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
+                    />
                   </svg>
                   Share
                 </button>
@@ -294,7 +313,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
         {/* Table of Contents Sidebar */}
         {showTOC && (
           <div className="w-64 border-r border-gray-200 bg-gray-50 p-4">
-            <h3 className="font-medium text-gray-900 mb-4">Table of Contents</h3>
+            <h3 className="mb-4 font-medium text-gray-900">Table of Contents</h3>
             <nav className="space-y-2">
               {report.content.executiveSummary && (
                 <a href="#executive-summary" className="block text-sm text-blue-600 hover:text-blue-800">
@@ -307,7 +326,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                   <a
                     key={section.id}
                     href={`#${section.id}`}
-                    className="block text-sm text-blue-600 hover:text-blue-800 pl-2"
+                    className="block pl-2 text-sm text-blue-600 hover:text-blue-800"
                   >
                     {section.title}
                   </a>
@@ -328,10 +347,10 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
 
         {/* Main Content */}
         <div className="flex-1">
-          <div className={`${viewMode === 'print' ? 'max-w-4xl mx-auto' : ''} p-8 space-y-8`}>
+          <div className={`${viewMode === 'print' ? 'mx-auto max-w-4xl' : ''} space-y-8 p-8`}>
             {/* Metadata */}
             <div className="border-b border-gray-200 pb-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
                 <div>
                   <span className="font-medium text-gray-500">Author:</span>
                   <p className="text-gray-900">{report.metadata.author || 'Unknown'}</p>
@@ -351,12 +370,12 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
               </div>
               {report.metadata.tags.length > 0 && (
                 <div className="mt-4">
-                  <span className="font-medium text-gray-500 block mb-2">Tags:</span>
+                  <span className="mb-2 block font-medium text-gray-500">Tags:</span>
                   <div className="flex flex-wrap gap-2">
                     {report.metadata.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                        className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800"
                       >
                         {tag}
                       </span>
@@ -369,9 +388,9 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
             {/* Executive Summary */}
             {report.content.executiveSummary && (
               <div id="executive-summary">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Executive Summary</h2>
-                <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
-                  <p className="text-gray-700 leading-relaxed">{report.content.executiveSummary}</p>
+                <h2 className="mb-4 text-xl font-bold text-gray-900">Executive Summary</h2>
+                <div className="rounded-r-lg border-l-4 border-blue-400 bg-blue-50 p-4">
+                  <p className="leading-relaxed text-gray-700">{report.content.executiveSummary}</p>
                 </div>
               </div>
             )}
@@ -381,31 +400,29 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
               .sort((a, b) => a.order - b.order)
               .map((section) => (
                 <div key={section.id} id={section.id}>
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">{section.title}</h2>
+                  <h2 className="mb-4 text-xl font-bold text-gray-900">{section.title}</h2>
 
                   {section.type === 'text' && (
                     <div className="prose max-w-none">
-                      <p className="text-gray-700 leading-relaxed">{section.content}</p>
+                      <p className="leading-relaxed text-gray-700">{section.content}</p>
                     </div>
                   )}
 
                   {section.type === 'chart' && section.chartId && (
-                    <div className="bg-white border border-gray-200 rounded-lg p-6">
+                    <div className="rounded-lg border border-gray-200 bg-white p-6">
                       {(() => {
-                        const chart = report.charts.find(c => c.chartId === section.chartId);
+                        const chart = report.charts.find((c) => c.chartId === section.chartId);
                         return chart ? (
                           <div>
-                            <h3 className="font-medium text-gray-900 mb-2">{chart.title}</h3>
-                            {chart.description && (
-                              <p className="text-sm text-gray-600 mb-4">{chart.description}</p>
-                            )}
-                            <div className="h-64 bg-gray-100 rounded flex items-center justify-center">
+                            <h3 className="mb-2 font-medium text-gray-900">{chart.title}</h3>
+                            {chart.description && <p className="mb-4 text-sm text-gray-600">{chart.description}</p>}
+                            <div className="flex h-64 items-center justify-center rounded bg-gray-100">
                               <span className="text-gray-500">Chart: {chart.title}</span>
                             </div>
                             {chart.insights && chart.insights.length > 0 && (
                               <div className="mt-4">
-                                <h4 className="font-medium text-gray-900 mb-2">Key Insights:</h4>
-                                <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
+                                <h4 className="mb-2 font-medium text-gray-900">Key Insights:</h4>
+                                <ul className="list-inside list-disc space-y-1 text-sm text-gray-600">
                                   {chart.insights.map((insight, index) => (
                                     <li key={index}>{insight}</li>
                                   ))}
@@ -425,18 +442,20 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
             {/* Key Findings */}
             {report.content.keyFindings && report.content.keyFindings.length > 0 && (
               <div id="key-findings">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Key Findings</h2>
+                <h2 className="mb-4 text-xl font-bold text-gray-900">Key Findings</h2>
                 <div className="space-y-4">
                   {report.content.keyFindings.map((finding, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg p-4">
+                    <div key={index} className="rounded-lg border border-gray-200 p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <p className="font-medium text-gray-900">{finding.finding}</p>
                           {finding.supportingData && (
-                            <p className="text-sm text-gray-600 mt-1">{finding.supportingData}</p>
+                            <p className="mt-1 text-sm text-gray-600">{finding.supportingData}</p>
                           )}
                         </div>
-                        <span className={`ml-4 inline-flex px-2 py-1 text-xs font-medium rounded-full border ${getPriorityColor(finding.importance)}`}>
+                        <span
+                          className={`ml-4 inline-flex rounded-full border px-2 py-1 text-xs font-medium ${getPriorityColor(finding.importance)}`}
+                        >
                           {finding.importance} priority
                         </span>
                       </div>
@@ -449,17 +468,19 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
             {/* Recommendations */}
             {report.content.recommendations && report.content.recommendations.length > 0 && (
               <div id="recommendations">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Recommendations</h2>
+                <h2 className="mb-4 text-xl font-bold text-gray-900">Recommendations</h2>
                 <div className="space-y-4">
                   {report.content.recommendations.map((rec, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <h3 className="font-medium text-gray-900 flex-1">{rec.recommendation}</h3>
-                        <span className={`ml-4 inline-flex px-2 py-1 text-xs font-medium rounded-full border ${getPriorityColor(rec.priority)}`}>
+                    <div key={index} className="rounded-lg border border-gray-200 p-4">
+                      <div className="mb-3 flex items-start justify-between">
+                        <h3 className="flex-1 font-medium text-gray-900">{rec.recommendation}</h3>
+                        <span
+                          className={`ml-4 inline-flex rounded-full border px-2 py-1 text-xs font-medium ${getPriorityColor(rec.priority)}`}
+                        >
                           {rec.priority} priority
                         </span>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
                         {rec.expectedImpact && (
                           <div>
                             <span className="font-medium text-gray-500">Expected Impact:</span>
