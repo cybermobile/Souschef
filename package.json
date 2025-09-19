@@ -88,6 +88,7 @@
     "@vercel/remix": "2.15.3",
     "@webcontainer/api": "1.5.1-internal.10",
     "@webcontainer/snapshot": "^0.1.0",
+    "@workos-inc/authkit-js": "^0.14.0",
     "@workos-inc/authkit-react": "^0.11.0",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/addon-web-links": "^0.11.0",

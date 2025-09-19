@@ -186,6 +186,9 @@ importers:
       '@webcontainer/snapshot':
         specifier: ^0.1.0
         version: 0.1.0
+      '@workos-inc/authkit-js':
+        specifier: ^0.14.0
+        version: 0.14.0
       '@workos-inc/authkit-react':
         specifier: ^0.11.0
         version: 0.11.0(react@18.3.1)
@@ -4632,6 +4635,9 @@ packages:
 
   '@workos-inc/authkit-js@0.13.0':
     resolution: {integrity: sha512-iA0Dt7D1BmY2/1s4oeA36W/aRt8/b5iyH6rP4AlgnjrcH2lUGkBgDXL76NXc0M7repkDQTMcJJ2NhCSo2rcWmg==}
+
+  '@workos-inc/authkit-js@0.14.0':
+    resolution: {integrity: sha512-Wt6rKoZdZnuAgiEBlvMDKhleU9DAwpyyy1SibacrnOWQgF4rcNlC+NTnHiiXu6OiOjQo6pPxhW42kCL+Gi+fjw==}
 
   '@workos-inc/authkit-react@0.11.0':
     resolution: {integrity: sha512-67HFSxP4wXC8ECGyvc1yGMwuD5NGkwT2OPt8DavHoKAlO+hRaAlu9wwzqUx1EJrHht0Dcx+l20Byq8Ab0bEhlg==}
@@ -14616,6 +14622,8 @@ snapshots:
       '@msgpack/msgpack': 3.1.1
 
   '@workos-inc/authkit-js@0.13.0': {}
+
+  '@workos-inc/authkit-js@0.14.0': {}
 
   '@workos-inc/authkit-react@0.11.0(react@18.3.1)':
     dependencies:
