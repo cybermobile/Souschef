@@ -64,6 +64,12 @@ export const ChefAuthProvider = ({
   const hasAlertedAboutOptIns = useRef(false);
   const authRetries = useRef(0);
   const { getAccessToken } = useAuth();
+  const workOsConfigWarningLogged = useRef(false);
+  const workOsAccessTokenWarningLogged = useRef(false);
+  const isWorkOsConfigured = Boolean(
+    import.meta.env.VITE_WORKOS_CLIENT_ID &&
+      (import.meta.env.VITE_WORKOS_API_HOSTNAME || import.meta.env.VITE_WORKOS_REDIRECT_URI),
+  );
 
   useEffect(() => {
     function setSessionId(sessionId: Id<'sessions'> | null) {
@@ -88,6 +94,15 @@ export const ChefAuthProvider = ({
     let verifySessionTimeout: ReturnType<typeof setTimeout> | null = null;
 
     async function verifySession() {
+      if (!isWorkOsConfigured) {
+        if (!workOsConfigWarningLogged.current && import.meta.env.DEV) {
+          console.info('Skipping WorkOS authentication: configuration is not available.');
+          workOsConfigWarningLogged.current = true;
+        }
+        setSessionId(null);
+        return;
+      }
+
       if (sessionIdFromLocalStorage) {
         // Seems like auth might not automatically refresh its state, so call this to kick it
         try {
@@ -95,7 +110,10 @@ export const ChefAuthProvider = ({
           await getAccessToken({});
           authRetries.current = 0;
         } catch (_e) {
-          console.error('Unable to fetch access token from WorkOS');
+          if (!workOsAccessTokenWarningLogged.current) {
+            console.error('Unable to fetch access token from WorkOS');
+            workOsAccessTokenWarningLogged.current = true;
+          }
           if (authRetries.current < 3 && verifySessionTimeout === null) {
             authRetries.current++;
             verifySessionTimeout = setTimeout(() => {
@@ -163,6 +181,7 @@ export const ChefAuthProvider = ({
     sessionIdFromLocalStorage,
     setSessionIdFromLocalStorage,
     getAccessToken,
+    isWorkOsConfigured,
   ]);
 
   const isLoading = sessionId === undefined || isConvexAuthLoading;
