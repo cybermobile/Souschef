@@ -69,13 +69,13 @@ export default function Reports() {
   };
 
   return (
-    <div className="flex size-full flex-col bg-background-primary">
+    <div className="flex size-full flex-col bg-bolt-elements-background-depth-1">
       <Header />
       <div className="flex-1 p-6">
         <div className="mx-auto max-w-7xl">
           <div className="mb-8">
-            <h1 className="text-content-primary text-3xl font-bold">Generated Reports</h1>
-            <p className="text-content-secondary mt-2">
+            <h1 className="text-bolt-elements-textPrimary text-3xl font-bold">Generated Reports</h1>
+            <p className="text-bolt-elements-textSecondary mt-2">
               View, manage, and export your AI-generated reports with embedded visualizations
             </p>
           </div>
@@ -83,64 +83,70 @@ export default function Reports() {
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
             {/* Filters Sidebar */}
             <div className="lg:col-span-1">
-              <div className="border-border-primary rounded-lg border bg-background-secondary p-6">
-                <h3 className="text-content-primary mb-4 text-lg font-medium">Filter Reports</h3>
+              <div className="border-bolt-elements-borderColor rounded-lg border bg-bolt-elements-background-depth-2 p-6">
+                <h3 className="text-bolt-elements-textPrimary mb-4 text-lg font-medium">Filter Reports</h3>
 
                 {/* Status Filter */}
                 <div className="mb-6">
-                  <h4 className="text-content-primary mb-2 text-sm font-medium">Status</h4>
+                  <h4 className="text-bolt-elements-textPrimary mb-2 text-sm font-medium">Status</h4>
                   {filters.status.length > 0 ? (
                     <div className="space-y-2">
                       {filters.status.map((status) => (
                         <label key={status} className="flex items-center">
-                          <input type="checkbox" className="border-border-primary text-accent-primary rounded" />
-                          <span className="text-content-secondary ml-2 text-sm capitalize">
+                          <input
+                            type="checkbox"
+                            className="border-bolt-elements-borderColor text-bolt-elements-focus rounded"
+                          />
+                          <span className="text-bolt-elements-textSecondary ml-2 text-sm capitalize">
                             {status.replace('_', ' ')}
                           </span>
                         </label>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-content-tertiary text-sm">No status filters available.</p>
+                    <p className="text-bolt-elements-textSecondary text-sm">No status filters available.</p>
                   )}
                 </div>
 
                 {/* Type Filter */}
                 <div className="mb-6">
-                  <h4 className="text-content-primary mb-2 text-sm font-medium">Report Type</h4>
+                  <h4 className="text-bolt-elements-textPrimary mb-2 text-sm font-medium">Report Type</h4>
                   {filters.type.length > 0 ? (
                     <div className="space-y-2">
                       {filters.type.map((type) => (
                         <label key={type} className="flex items-center">
-                          <input type="checkbox" className="border-border-primary text-accent-primary rounded" />
-                          <span className="text-content-secondary ml-2 text-sm capitalize">{type}</span>
+                          <input
+                            type="checkbox"
+                            className="border-bolt-elements-borderColor text-bolt-elements-focus rounded"
+                          />
+                          <span className="text-bolt-elements-textSecondary ml-2 text-sm capitalize">{type}</span>
                         </label>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-content-tertiary text-sm">No type filters available.</p>
+                    <p className="text-bolt-elements-textSecondary text-sm">No type filters available.</p>
                   )}
                 </div>
 
                 {/* Quick Actions */}
-                <div className="border-border-primary mt-8 border-t pt-6">
-                  <h4 className="text-content-primary mb-3 text-sm font-medium">Quick Actions</h4>
+                <div className="border-bolt-elements-borderColor mt-8 border-t pt-6">
+                  <h4 className="text-bolt-elements-textPrimary mb-3 text-sm font-medium">Quick Actions</h4>
                   <div className="space-y-2">
                     <button
                       type="button"
-                      className="text-content-secondary w-full rounded px-3 py-2 text-left text-sm hover:bg-background-primary"
+                      className="text-bolt-elements-textSecondary w-full rounded px-3 py-2 text-left text-sm transition-colors hover:bg-bolt-elements-background-depth-3"
                     >
                       Export All Reports
                     </button>
                     <button
                       type="button"
-                      className="text-content-secondary w-full rounded px-3 py-2 text-left text-sm hover:bg-background-primary"
+                      className="text-bolt-elements-textSecondary w-full rounded px-3 py-2 text-left text-sm transition-colors hover:bg-bolt-elements-background-depth-3"
                     >
                       Generate New Report
                     </button>
                     <button
                       type="button"
-                      className="text-content-secondary w-full rounded px-3 py-2 text-left text-sm hover:bg-background-primary"
+                      className="text-bolt-elements-textSecondary w-full rounded px-3 py-2 text-left text-sm transition-colors hover:bg-bolt-elements-background-depth-3"
                     >
                       Report Templates
                     </button>
@@ -148,22 +154,22 @@ export default function Reports() {
                 </div>
 
                 {/* Report Stats */}
-                <div className="border-border-primary mt-6 border-t pt-6">
-                  <h4 className="text-content-primary mb-3 text-sm font-medium">Statistics</h4>
+                <div className="border-bolt-elements-borderColor mt-6 border-t pt-6">
+                  <h4 className="text-bolt-elements-textPrimary mb-3 text-sm font-medium">Statistics</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-content-secondary">Total Reports</span>
-                      <span className="text-content-primary font-medium">{reports.length}</span>
+                      <span className="text-bolt-elements-textSecondary">Total Reports</span>
+                      <span className="text-bolt-elements-textPrimary font-medium">{reports.length}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-content-secondary">Completed</span>
-                      <span className="text-content-primary font-medium">
+                      <span className="text-bolt-elements-textSecondary">Completed</span>
+                      <span className="text-bolt-elements-textPrimary font-medium">
                         {reports.filter((r) => r.status === 'completed').length}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-content-secondary">Draft</span>
-                      <span className="text-content-primary font-medium">
+                      <span className="text-bolt-elements-textSecondary">Draft</span>
+                      <span className="text-bolt-elements-textPrimary font-medium">
                         {reports.filter((r) => r.status === 'draft').length}
                       </span>
                     </div>
@@ -179,11 +185,11 @@ export default function Reports() {
                   <input
                     type="text"
                     placeholder="Search reports..."
-                    className="border-border-primary text-content-primary placeholder:text-content-secondary focus:ring-accent-primary rounded-lg border bg-background-primary px-4 py-2 focus:outline-none focus:ring-2"
+                    className="border-bolt-elements-borderColor text-bolt-elements-textPrimary placeholder:text-bolt-elements-textSecondary focus:ring-bolt-elements-focus rounded-lg border bg-bolt-elements-background-depth-1 px-4 py-2 focus:outline-none focus:ring-2"
                   />
                   <select
                     aria-label="Sort reports by"
-                    className="border-border-primary text-content-primary focus:ring-accent-primary rounded-lg border bg-background-primary px-3 py-2 focus:outline-none focus:ring-2"
+                    className="border-bolt-elements-borderColor text-bolt-elements-textPrimary focus:ring-bolt-elements-focus rounded-lg border bg-bolt-elements-background-depth-1 px-3 py-2 focus:outline-none focus:ring-2"
                   >
                     <option>Sort by Date</option>
                     <option>Sort by Title</option>
@@ -193,23 +199,23 @@ export default function Reports() {
                 </div>
                 <button
                   type="button"
-                  className="rounded-lg bg-button-primary-background px-4 py-2 font-medium text-button-primary-text hover:bg-button-primary-background-hover"
+                  className="rounded-lg bg-bolt-elements-button-primary-background px-4 py-2 font-medium text-bolt-elements-button-primary-text hover:bg-bolt-elements-button-primary-backgroundHover"
                 >
                   Generate Report
                 </button>
               </div>
 
               {reports.length === 0 ? (
-                <div className="border-border-primary flex flex-col items-center justify-center rounded-lg border bg-background-secondary p-10 text-center">
+                <div className="border-bolt-elements-borderColor flex flex-col items-center justify-center rounded-lg border bg-bolt-elements-background-depth-2 p-10 text-center">
                   <div className="mb-4 text-5xl">📄</div>
-                  <h2 className="text-content-primary mb-2 text-xl font-semibold">No reports yet</h2>
-                  <p className="text-content-secondary mb-6 max-w-lg text-sm">
+                  <h2 className="text-bolt-elements-textPrimary mb-2 text-xl font-semibold">No reports yet</h2>
+                  <p className="text-bolt-elements-textSecondary mb-6 max-w-lg text-sm">
                     Generate a report to see it listed here. Once you create reports, they will appear with quick access
                     to summaries, sections, and exports.
                   </p>
                   <button
                     type="button"
-                    className="rounded-lg bg-button-primary-background px-4 py-2 font-medium text-button-primary-text hover:bg-button-primary-background-hover"
+                    className="rounded-lg bg-bolt-elements-button-primary-background px-4 py-2 font-medium text-bolt-elements-button-primary-text hover:bg-bolt-elements-button-primary-backgroundHover"
                   >
                     Generate Report
                   </button>
@@ -232,40 +238,40 @@ export default function Reports() {
                     return (
                       <div
                         key={report.id}
-                        className="border-border-primary rounded-lg border bg-background-secondary p-6"
+                        className="border-bolt-elements-borderColor rounded-lg border bg-bolt-elements-background-depth-2 p-6"
                       >
                         <div className="mb-4 flex items-start justify-between">
                           <div className="flex-1">
                             <div className="mb-2 flex items-center space-x-3">
-                              <h3 className="text-content-primary text-xl font-semibold">{report.title}</h3>
+                              <h3 className="text-bolt-elements-textPrimary text-xl font-semibold">{report.title}</h3>
                               <span className={`rounded-full px-2 py-1 text-xs ${statusClass}`}>{status}</span>
                               {report.type && (
-                                <span className="text-content-secondary rounded-full bg-background-primary px-2 py-1 text-xs capitalize">
+                                <span className="text-bolt-elements-textSecondary rounded-full bg-bolt-elements-background-depth-1 px-2 py-1 text-xs capitalize">
                                   {report.type}
                                 </span>
                               )}
                             </div>
-                            <p className="text-content-secondary mb-3">{description}</p>
+                            <p className="text-bolt-elements-textSecondary mb-3">{description}</p>
                             {summary && (
-                              <p className="text-content-secondary mb-4 text-sm italic">&ldquo;{summary}&rdquo;</p>
+                              <p className="text-bolt-elements-textSecondary mb-4 text-sm italic">&ldquo;{summary}&rdquo;</p>
                             )}
                           </div>
                         </div>
 
                         <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                           <div className="text-sm">
-                            <span className="text-content-secondary">Created:</span>
-                            <span className="text-content-primary ml-1">
+                            <span className="text-bolt-elements-textSecondary">Created:</span>
+                            <span className="text-bolt-elements-textPrimary ml-1">
                               {new Date(report.createdAt).toLocaleDateString()}
                             </span>
                           </div>
                           <div className="text-sm">
-                            <span className="text-content-secondary">Pages:</span>
-                            <span className="text-content-primary ml-1">{report.pageCount ?? '—'}</span>
+                            <span className="text-bolt-elements-textSecondary">Pages:</span>
+                            <span className="text-bolt-elements-textPrimary ml-1">{report.pageCount ?? '—'}</span>
                           </div>
                           <div className="text-sm">
-                            <span className="text-content-secondary">Words:</span>
-                            <span className="text-content-primary ml-1">
+                            <span className="text-bolt-elements-textSecondary">Words:</span>
+                            <span className="text-bolt-elements-textPrimary ml-1">
                               {typeof report.wordCount === 'number' ? report.wordCount.toLocaleString() : '—'}
                             </span>
                           </div>
@@ -276,7 +282,7 @@ export default function Reports() {
                             {tags.map((tag) => (
                               <span
                                 key={tag}
-                                className="text-content-secondary rounded bg-background-primary px-2 py-1 text-xs"
+                                className="text-bolt-elements-textSecondary rounded bg-bolt-elements-background-depth-1 px-2 py-1 text-xs"
                               >
                                 {tag}
                               </span>
@@ -285,12 +291,12 @@ export default function Reports() {
                         </div>
 
                         <div className="mb-4">
-                          <h4 className="text-content-primary mb-2 text-sm font-medium">Sections:</h4>
+                          <h4 className="text-bolt-elements-textPrimary mb-2 text-sm font-medium">Sections:</h4>
                           <div className="flex flex-wrap gap-2">
                             {sections.map((section, index) => (
                               <span
                                 key={index}
-                                className="text-content-secondary rounded border bg-background-primary px-2 py-1 text-xs"
+                                className="text-bolt-elements-textSecondary rounded border border-bolt-elements-borderColor bg-bolt-elements-background-depth-1 px-2 py-1 text-xs"
                               >
                                 {section}
                               </span>
@@ -300,12 +306,12 @@ export default function Reports() {
 
                         {charts.length > 0 && (
                           <div className="mb-4">
-                            <h4 className="text-content-primary mb-2 text-sm font-medium">Visualizations:</h4>
+                            <h4 className="text-bolt-elements-textPrimary mb-2 text-sm font-medium">Visualizations:</h4>
                             <div className="flex flex-wrap gap-2">
                               {charts.map((chart) => (
                                 <span
                                   key={chart.id}
-                                  className="bg-accent-primary/10 text-accent-primary border-accent-primary/20 rounded border px-2 py-1 text-xs"
+                                  className="border-bolt-elements-focus/30 bg-bolt-elements-focus/10 text-bolt-elements-focus rounded border px-2 py-1 text-xs"
                                 >
                                   📊 {chart.title} ({chart.type})
                                 </span>
@@ -315,20 +321,20 @@ export default function Reports() {
                         )}
 
                         <div className="flex items-center justify-between">
-                          <div className="text-content-secondary text-xs">
+                          <div className="text-bolt-elements-textSecondary text-xs">
                             Last updated {new Date(report.updatedAt).toLocaleDateString()}
                           </div>
                           <div className="flex space-x-2">
                             <button
                               type="button"
-                              className="border-border-primary text-content-primary rounded border px-3 py-1 text-sm transition-colors hover:bg-background-primary"
+                              className="border-bolt-elements-borderColor text-bolt-elements-textPrimary rounded border px-3 py-1 text-sm transition-colors hover:bg-bolt-elements-background-depth-1"
                             >
                               Preview
                             </button>
                             <select
                               aria-label="Export format"
                               onChange={(e) => e.target.value && handleExport(e.target.value as ExportFormat, report)}
-                              className="border-border-primary text-content-primary rounded border px-3 py-1 text-sm transition-colors hover:bg-background-primary"
+                              className="border-bolt-elements-borderColor text-bolt-elements-textPrimary rounded border px-3 py-1 text-sm transition-colors hover:bg-bolt-elements-background-depth-1"
                               defaultValue=""
                             >
                               <option value="" disabled>
@@ -341,7 +347,7 @@ export default function Reports() {
                             </select>
                             <button
                               type="button"
-                              className="rounded bg-button-primary-background px-3 py-1 text-sm text-button-primary-text hover:bg-button-primary-background-hover"
+                              className="rounded bg-bolt-elements-button-primary-background px-3 py-1 text-sm text-bolt-elements-button-primary-text hover:bg-bolt-elements-button-primary-backgroundHover"
                             >
                               View Report
                             </button>
