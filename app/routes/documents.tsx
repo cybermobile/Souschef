@@ -7,6 +7,7 @@ import { Header } from '~/components/header/Header';
 import { DocumentUploader } from '~/components/document/DocumentUploader';
 import { ProcessingStatus } from '~/components/document/ProcessingStatus';
 import type { Id } from '@convex/_generated/dataModel';
+import { ChefAuthProvider } from '~/components/chat/ChefAuthWrapper';
 
 export const meta: MetaFunction = () => {
   return [
@@ -15,7 +16,7 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export const loader = async (args: LoaderFunctionArgs) => {
+export const loader = async (_args: LoaderFunctionArgs) => {
   // TODO: Fetch user's documents from Convex
   // For now, return empty data
   return json({
@@ -25,6 +26,14 @@ export const loader = async (args: LoaderFunctionArgs) => {
 };
 
 export default function Documents() {
+  return (
+    <ChefAuthProvider redirectIfUnauthenticated={true}>
+      <DocumentsContent />
+    </ChefAuthProvider>
+  );
+}
+
+function DocumentsContent() {
   const { documents, processingQueue } = useLoaderData<typeof loader>();
   const [lastDocumentId, setLastDocumentId] = useState<Id<'uploadedDocuments'> | null>(null);
 
