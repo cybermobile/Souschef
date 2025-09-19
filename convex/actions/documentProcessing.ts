@@ -29,9 +29,11 @@ export const processUploadedDocument = action({
         throw new Error("Unable to read uploaded document from storage");
       }
 
-      const arrayBuffer =
-        storedFile instanceof Blob ? await storedFile.arrayBuffer() : storedFile;
-      const buffer = Buffer.from(arrayBuffer);
+      const buffer = await loadStorageFileAsBuffer(storedFile);
+
+      if (!buffer.byteLength) {
+        throw new Error("The uploaded document is empty. Please upload a file with content.");
+      }
       const fileUrl = await ctx.storage.getUrl(args.storageId);
       if (!fileUrl) {
         throw new Error("Unable to generate storage URL for uploaded document");
@@ -42,35 +44,67 @@ export const processUploadedDocument = action({
       // Extract text based on file type
       if (args.fileType === "application/pdf") {
         // PDF processing with pdf-parse
-        const pdfParse = await import("pdf-parse");
-        const pdfData = await pdfParse.default(buffer);
+        const pdfParseModule = await import("pdf-parse");
+        const pdfParse = pdfParseModule.default ?? pdfParseModule;
+        const pdfData = await pdfParse(buffer);
         extractedText = pdfData.text;
         metadata = {
           pageCount: pdfData.numpages,
           info: pdfData.info,
           version: pdfData.version,
         };
-      } else if (args.fileType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+      } else if (
+        args.fileType ===
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+        args.fileName.toLowerCase().endsWith(".docx")
+      ) {
+        if (!args.fileName.toLowerCase().endsWith(".docx")) {
+          throw new Error(
+            "Only .docx Word documents are supported. Please convert your file and try again.",
+          );
+        }
+
         // Word document processing with mammoth
         const mammothModule = await import("mammoth");
+        const mammoth = mammothModule.default ?? mammothModule;
         const extractRawText =
-          mammothModule.extractRawText ?? mammothModule.default?.extractRawText;
+          typeof mammoth.extractRawText === "function"
+            ? mammoth.extractRawText
+            : typeof mammoth.default?.extractRawText === "function"
+              ? mammoth.default.extractRawText
+              : null;
 
-        if (typeof extractRawText !== "function") {
+        if (!extractRawText) {
           throw new Error("Failed to load Word document parser");
         }
 
-        const result = await extractRawText({ buffer });
-        extractedText = result.value;
-        metadata = {
-          messages: result.messages,
-        };
+        try {
+          const result = await extractRawText({ buffer });
+          extractedText = result.value;
+          metadata = {
+            messages: result.messages,
+          };
+        } catch (docError) {
+          throw new Error(
+            docError instanceof Error && /corrupted zip/i.test(docError.message)
+              ? "We couldn't read that Word document. Make sure it's a valid .docx file that isn't password protected or corrupted."
+              : `Failed to process Word document${
+                  docError instanceof Error && docError.message
+                    ? `: ${docError.message}`
+                    : ""
+                }`,
+          );
+        }
       } else if (args.fileType.startsWith("text/")) {
         // Plain text files
         extractedText = new TextDecoder().decode(buffer);
         metadata = {
           encoding: "utf-8",
         };
+      } else if (args.fileType === "application/msword" || args.fileName.toLowerCase().endsWith(".doc")) {
+        throw new Error(
+          "Legacy .doc files are not supported. Please save the document as .docx and upload it again.",
+        );
       } else {
         throw new Error(`Unsupported file type: ${args.fileType}`);
       }
@@ -137,6 +171,31 @@ export const processUploadedDocument = action({
     }
   },
 });
+
+async function loadStorageFileAsBuffer(file: unknown): Promise<Buffer> {
+  if (!file) {
+    throw new Error("Unable to load uploaded file");
+  }
+
+  if (Buffer.isBuffer(file)) {
+    return file;
+  }
+
+  if (file instanceof ArrayBuffer) {
+    return Buffer.from(file);
+  }
+
+  if (ArrayBuffer.isView(file)) {
+    return Buffer.from(file.buffer, file.byteOffset, file.byteLength);
+  }
+
+  if (typeof Blob !== "undefined" && file instanceof Blob) {
+    const arrayBuffer = await file.arrayBuffer();
+    return Buffer.from(arrayBuffer);
+  }
+
+  throw new Error("Unsupported uploaded file data type");
+}
 
 function analyzeDocumentStructure(text: string) {
   const lines = text.split('\n');
