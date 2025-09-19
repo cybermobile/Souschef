@@ -151,7 +151,7 @@ function VisualizeContent() {
               <div className="space-y-6">
                 {/* Data Upload */}
                 <div className="border-bolt-elements-borderColor rounded-lg border bg-bolt-elements-background-depth-2 p-6">
-                  <h3 className="text-bolt-elements-textPrimary mb-4 text-lg font-medium">Upload Data</h3>
+                  <h2 className="text-bolt-elements-textPrimary mb-4 text-xl font-semibold">Upload Data</h2>
                   <ClientOnly>
                     {() => (
                       <DataUploader
@@ -174,7 +174,7 @@ function VisualizeContent() {
 
                 {/* Data Files */}
                 <div className="border-bolt-elements-borderColor rounded-lg border bg-bolt-elements-background-depth-2 p-6">
-                  <h3 className="text-bolt-elements-textPrimary mb-4 text-lg font-medium">Your Data Files</h3>
+                  <h2 className="text-bolt-elements-textPrimary mb-4 text-xl font-semibold">Your Data Files</h2>
                   <div className="space-y-3">
                     {dataFiles.map((file) => (
                       <div
@@ -195,7 +195,7 @@ function VisualizeContent() {
 
                 {/* Saved Charts */}
                 <div className="border-bolt-elements-borderColor rounded-lg border bg-bolt-elements-background-depth-2 p-6">
-                  <h3 className="text-bolt-elements-textPrimary mb-4 text-lg font-medium">Saved Charts</h3>
+                  <h2 className="text-bolt-elements-textPrimary mb-4 text-xl font-semibold">Saved Charts</h2>
                   <div className="space-y-3">
                     {savedCharts.map((chart) => (
                       <div
@@ -216,7 +216,7 @@ function VisualizeContent() {
 
                 {/* Chart Recommendations */}
                 <div className="border-bolt-elements-borderColor rounded-lg border bg-bolt-elements-background-depth-2 p-6">
-                  <h3 className="text-bolt-elements-textPrimary mb-4 text-lg font-medium">AI Recommendations</h3>
+                  <h2 className="text-bolt-elements-textPrimary mb-4 text-xl font-semibold">AI Recommendations</h2>
                   <div className="space-y-3">
                     {chartRecommendations.map((rec, index) => (
                       <div
@@ -293,7 +293,7 @@ function VisualizeContent() {
               {/* Chart Gallery */}
               {savedCharts.length > 0 && (
                 <div className="border-bolt-elements-borderColor mt-8 rounded-lg border bg-bolt-elements-background-depth-2 p-6">
-                  <h3 className="text-bolt-elements-textPrimary mb-4 text-lg font-medium">Your Charts</h3>
+                  <h2 className="text-bolt-elements-textPrimary mb-4 text-xl font-semibold">Your Charts</h2>
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     {savedCharts.map((chart) => (
                       <div
