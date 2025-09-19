@@ -176,12 +176,12 @@ export const exportToPDF = (data: ExportData): void => {
 };
 
 // Placeholder functions for Word and PowerPoint export
-export const exportToWord = (data: ExportData): void => {
+export const exportToWord = (_data: ExportData): void => {
   // In a real implementation, this would use libraries like docx or mammoth
   alert('Word export feature coming soon! For now, you can use HTML export and copy to Word.');
 };
 
-export const exportToPowerPoint = (data: ExportData): void => {
+export const exportToPowerPoint = (_data: ExportData): void => {
   // In a real implementation, this would use libraries like pptxgenjs
   alert('PowerPoint export feature coming soon! For now, you can use HTML export and copy to PowerPoint.');
 };
