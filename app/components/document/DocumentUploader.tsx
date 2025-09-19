@@ -94,9 +94,9 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
         setProgress(100);
         setCurrentStep('Complete');
         onUploadComplete?.(result.documentId);
-      } catch (error) {
-        console.error('Upload failed:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+      } catch (_error) {
+        console.error('Upload failed:', _error);
+        const errorMessage = _error instanceof Error ? _error.message : 'Upload failed';
         onUploadError?.(errorMessage);
       } finally {
         setUploading(false);
@@ -148,7 +148,7 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
         {...getRootProps()}
         className={`
           cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-all duration-200
-          ${isDragActive ? 'scale-102 border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'}
+          ${isDragActive ? 'scale-105 border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'}
           ${uploading ? 'pointer-events-none opacity-70' : ''}
           ${fileRejections.length > 0 ? 'border-red-400 bg-red-50' : ''}
         `}
