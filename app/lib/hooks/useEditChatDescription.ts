@@ -1,11 +1,12 @@
 import { api } from '@convex/_generated/api';
 import { useStore } from '@nanostores/react';
 import { useConvex } from 'convex/react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { description as descriptionStore } from '~/lib/stores/description';
 import { useConvexSessionIdOrNullOrLoading } from '~/lib/stores/sessionId';
 import { chatIdStore } from '~/lib/stores/chatId';
+import { atom } from 'nanostores';
 interface EditChatDescriptionOptions {
   initialDescription?: string;
   customChatId?: string;
@@ -41,7 +42,8 @@ export function useEditChatDescription({
   customChatId,
   syncWithGlobalStore,
 }: EditChatDescriptionOptions): EditChatDescriptionHook {
-  const chatIdFromStore = useStore(chatIdStore);
+  const fallbackChatIdStore = useMemo(() => atom<string | undefined>(undefined), []);
+  const chatIdFromStore = useStore(customChatId ? fallbackChatIdStore : chatIdStore);
   const sessionId = useConvexSessionIdOrNullOrLoading();
   const [editing, setEditing] = useState(false);
   const [currentDescription, setCurrentDescription] = useState(initialDescription);

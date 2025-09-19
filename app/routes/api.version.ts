@@ -15,7 +15,8 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (!globalEnv.VERCEL_TOKEN) {
-    return json({ error: 'Failed to fetch version information' }, { status: 500 });
+    // When running locally we don't have access to Vercel's API, so just skip the check.
+    return json({ sha: null }, { status: 200 });
   }
 
   const requestOptions = {

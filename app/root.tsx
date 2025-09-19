@@ -116,8 +116,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
     }
     // Note that this the the 'Project API Key' from PostHog, which is
     // write-only and PostHog says is safe to use in public apps.
-    const key = import.meta.env.VITE_POSTHOG_KEY || '';
-    const apiHost = import.meta.env.VITE_POSTHOG_HOST || '';
+    const key = import.meta.env.VITE_POSTHOG_KEY;
+    const apiHost = import.meta.env.VITE_POSTHOG_HOST || 'https://us.posthog.com';
+
+    if (!key) {
+      if (import.meta.env.DEV) {
+        console.info('PostHog analytics disabled: VITE_POSTHOG_KEY not configured.');
+      }
+      return;
+    }
 
     // See https://posthog.com/docs/libraries/js#config
     posthog.init(key, {
