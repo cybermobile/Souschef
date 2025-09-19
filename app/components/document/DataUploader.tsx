@@ -19,7 +19,7 @@ interface DataUploaderProps {
   className?: string;
 }
 
-interface DataPreview {
+export interface DataPreview {
   fileName: string;
   fileType: string;
   headers: string[];
@@ -53,7 +53,7 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
   const generateUploadUrl = useMutation(convexApi.mutations.storage.generateUploadUrl);
   const processDataFile = useAction(convexApi['actions/dataProcessing'].processDataFile);
 
-  const detectColumnType = (values: any[]): string => {
+  const detectColumnType = useCallback((values: any[]): string => {
     const nonEmptyValues = values.filter((v) => v !== null && v !== undefined && v !== '');
     if (nonEmptyValues.length === 0) {
       return 'string';
@@ -92,96 +92,102 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
       return 'date';
     }
     return 'string';
-  };
+  }, []);
 
-  const parseCSV = (file: File): Promise<DataPreview> => {
-    return new Promise((resolve, reject) => {
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => {
+  const parseCSV = useCallback(
+    (file: File): Promise<DataPreview> => {
+      return new Promise((resolve, reject) => {
+        Papa.parse(file, {
+          header: true,
+          skipEmptyLines: true,
+          complete: (results) => {
+            try {
+              const headers = results.meta.fields || [];
+              const rows = results.data as any[];
+
+              // Analyze column types
+              const columnTypes: { [key: string]: string } = {};
+              headers.forEach((header) => {
+                const columnValues = rows.map((row) => row[header]);
+                columnTypes[header] = detectColumnType(columnValues);
+              });
+
+              const preview: DataPreview = {
+                fileName: file.name,
+                fileType: 'csv',
+                headers,
+                sampleRows: rows.slice(0, 5).map((row) => headers.map((h) => row[h])),
+                totalRows: rows.length,
+                columnTypes,
+              };
+
+              resolve(preview);
+            } catch (_error) {
+              reject(new Error('Failed to parse CSV file'));
+            }
+          },
+          error: (error) => {
+            reject(new Error(`CSV parsing error: ${error.message}`));
+          },
+        });
+      });
+    },
+    [detectColumnType],
+  );
+
+  const parseExcel = useCallback(
+    (file: File): Promise<DataPreview> => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
           try {
-            const headers = results.meta.fields || [];
-            const rows = results.data as any[];
+            const data = new Uint8Array(e.target?.result as ArrayBuffer);
+            const workbook = XLSX.read(data, { type: 'array' });
+
+            // Use first sheet
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+
+            // Convert to JSON
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+
+            if (jsonData.length === 0) {
+              reject(new Error('Excel file appears to be empty'));
+              return;
+            }
+
+            const headers = jsonData[0].map((h) => String(h || ''));
+            const dataRows = jsonData
+              .slice(1)
+              .filter((row) => row.some((cell) => cell !== null && cell !== undefined && cell !== ''));
 
             // Analyze column types
             const columnTypes: { [key: string]: string } = {};
-            headers.forEach((header) => {
-              const columnValues = rows.map((row) => row[header]);
+            headers.forEach((header, index) => {
+              const columnValues = dataRows.map((row) => row[index]);
               columnTypes[header] = detectColumnType(columnValues);
             });
 
             const preview: DataPreview = {
               fileName: file.name,
-              fileType: 'csv',
+              fileType: file.name.endsWith('.xlsx') ? 'xlsx' : 'xls',
               headers,
-              sampleRows: rows.slice(0, 5).map((row) => headers.map((h) => row[h])),
-              totalRows: rows.length,
+              sampleRows: dataRows.slice(0, 5),
+              totalRows: dataRows.length,
               columnTypes,
             };
 
             resolve(preview);
-          } catch (error) {
-            reject(new Error('Failed to parse CSV file'));
+          } catch (_error) {
+            reject(new Error('Failed to parse Excel file'));
           }
-        },
-        error: (error) => {
-          reject(new Error(`CSV parsing error: ${error.message}`));
-        },
+        };
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsArrayBuffer(file);
       });
-    });
-  };
-
-  const parseExcel = (file: File): Promise<DataPreview> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const data = new Uint8Array(e.target?.result as ArrayBuffer);
-          const workbook = XLSX.read(data, { type: 'array' });
-
-          // Use first sheet
-          const sheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[sheetName];
-
-          // Convert to JSON
-          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
-
-          if (jsonData.length === 0) {
-            reject(new Error('Excel file appears to be empty'));
-            return;
-          }
-
-          const headers = jsonData[0].map((h) => String(h || ''));
-          const dataRows = jsonData
-            .slice(1)
-            .filter((row) => row.some((cell) => cell !== null && cell !== undefined && cell !== ''));
-
-          // Analyze column types
-          const columnTypes: { [key: string]: string } = {};
-          headers.forEach((header, index) => {
-            const columnValues = dataRows.map((row) => row[index]);
-            columnTypes[header] = detectColumnType(columnValues);
-          });
-
-          const preview: DataPreview = {
-            fileName: file.name,
-            fileType: file.name.endsWith('.xlsx') ? 'xlsx' : 'xls',
-            headers,
-            sampleRows: dataRows.slice(0, 5),
-            totalRows: dataRows.length,
-            columnTypes,
-          };
-
-          resolve(preview);
-        } catch (error) {
-          reject(new Error('Failed to parse Excel file'));
-        }
-      };
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsArrayBuffer(file);
-    });
-  };
+    },
+    [detectColumnType],
+  );
 
   const resolveServerFileType = (preview: DataPreview, file: File): string => {
     if (preview.fileType === 'csv') {
@@ -287,6 +293,8 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
       onDataPreview,
       generateUploadUrl,
       processDataFile,
+      parseCSV,
+      parseExcel,
     ],
   );
 
@@ -308,7 +316,7 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
         {...getRootProps()}
         className={`
           cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-all duration-200
-          ${isDragActive ? 'scale-102 border-green-400 bg-green-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'}
+          ${isDragActive ? 'scale-105 border-green-400 bg-green-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'}
           ${uploading ? 'pointer-events-none opacity-70' : ''}
           ${fileRejections.length > 0 ? 'border-red-400 bg-red-50' : ''}
         `}

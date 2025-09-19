@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Chart as ChartJS } from 'chart.js';
 
 interface ReportSection {
   id: string;

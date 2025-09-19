@@ -38,6 +38,7 @@ import { PencilSquareIcon } from '@heroicons/react/24/outline';
 import { ChatBubbleLeftIcon, DocumentArrowUpIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@workos-inc/authkit-react';
 import { useConvex } from 'convex/react';
+import { PromptWorkspace } from './PromptWorkspace';
 
 const PROMPT_LENGTH_WARNING_THRESHOLD = 2000;
 
@@ -224,7 +225,7 @@ export const MessageInput = memo(function MessageInput({
     } finally {
       setIsEnhancing(false);
     }
-  }, [input, convex]);
+  }, [input, convex, selectedTeamSlug]);
 
   // Helper to insert template and select '[...]'
   const insertTemplate = useCallback(
@@ -250,10 +251,18 @@ export const MessageInput = memo(function MessageInput({
     [input],
   );
 
+  const workspaceEnabled = true;
+
   return (
     <div className="relative z-20 mx-auto w-full max-w-chat rounded-xl shadow transition-all duration-200">
       <div className="rounded-xl bg-background-primary/75 backdrop-blur-md">
-        <div className="rounded-t-xl border transition-all has-[textarea:focus]:border-border-selected">
+        {workspaceEnabled && <PromptWorkspace chatStarted={chatStarted} />}
+        <div
+          className={classNames(
+            'border transition-all has-[textarea:focus]:border-border-selected',
+            workspaceEnabled ? 'rounded-t-none border-t-0' : 'rounded-t-xl',
+          )}
+        >
           <TextareaWithHighlights
             onKeyDown={handleKeyDown}
             onChange={handleChange}

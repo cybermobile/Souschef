@@ -58,7 +58,7 @@ export function Header({ hideSidebarIcon = false }: { hideSidebarIcon?: boolean 
   return (
     <header
       className={
-        'flex h-[var(--header-height)] items-center overflow-x-auto overflow-y-hidden border-b border-bolt-elements-borderColor bg-bolt-elements-background-depth-1 p-5 text-bolt-elements-textPrimary'
+        'border-bolt-elements-borderColor text-bolt-elements-textPrimary flex h-[var(--header-height)] items-center overflow-x-auto overflow-y-hidden border-b bg-bolt-elements-background-depth-1 p-5'
       }
     >
       <div className="z-40 flex cursor-pointer items-center gap-4">
@@ -99,7 +99,7 @@ export function Header({ hideSidebarIcon = false }: { hideSidebarIcon?: boolean 
       </div>
       <>
         {chat.started && (
-          <span className="flex-1 truncate px-4 text-center text-bolt-elements-textPrimary">
+          <span className="text-bolt-elements-textPrimary flex-1 truncate px-4 text-center">
             <ClientOnly>{() => <ChatDescription />}</ClientOnly>
           </span>
         )}
@@ -137,7 +137,7 @@ export function Header({ hideSidebarIcon = false }: { hideSidebarIcon?: boolean 
                         decoding="sync"
                       />
                     ) : (
-                      <PersonIcon className="size-8 min-w-8 rounded-full border text-bolt-elements-textSecondary" />
+                      <PersonIcon className="text-bolt-elements-textSecondary size-8 min-w-8 rounded-full border" />
                     ),
                   }}
                 >
