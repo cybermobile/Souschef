@@ -164,6 +164,13 @@ export default [
   },
   ...tailwindcss.configs['flat/recommended'],
   {
+    settings: {
+      tailwindcss: {
+        config: 'tailwind.config.ts',
+      },
+    },
+  },
+  {
     files: ['**/*.tsx'],
     plugins: {
       tailwindcss,
@@ -172,7 +179,19 @@ export default [
       'tailwindcss/no-custom-classname': [
         'error',
         {
-          whitelist: ['sentry-mask'],
+          whitelist: [
+            'sentry-mask',
+            'text-bolt-.*',
+            'bg-bolt-.*',
+            'border-bolt-.*',
+            'placeholder:text-bolt-.*',
+            'ring-bolt-.*',
+            'hover:border-bolt-.*',
+            'hover:bg-bolt-.*',
+            'hover:text-bolt-.*',
+            'text-content-.*',
+            'bg-content-.*',
+          ],
         },
       ],
     },
