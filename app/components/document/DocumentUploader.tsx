@@ -59,6 +59,22 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
       }
 
       const file = acceptedFiles[0];
+
+      console.log('File upload debug:', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        lastModified: file.lastModified,
+        webkitRelativePath: file.webkitRelativePath
+      });
+
+      if (file.size === 0) {
+        const error = `The selected file "${file.name}" appears to be empty (0 bytes). Please choose a file with content.`;
+        setErrorMessage(error);
+        onUploadError?.(error);
+        return;
+      }
+
       setUploadedFile(file);
       setUploading(true);
       setProgress(0);

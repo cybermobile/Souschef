@@ -27,6 +27,7 @@ import { SubchatLimitNudge } from './SubchatLimitNudge';
 import { useMutation } from 'convex/react';
 import { api } from '@convex/_generated/api';
 import { subchatIndexStore, useIsSubchatLoaded } from '~/lib/stores/subchats';
+import { InlineToolLauncher } from './InlineToolLauncher';
 
 interface BaseChatProps {
   // Refs
@@ -206,6 +207,11 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                     )}
                   </>
                 ) : null}
+                {chatStarted && (
+                  <div className="mx-auto mt-6 w-full max-w-chat">
+                    <InlineToolLauncher chatStarted={chatStarted} />
+                  </div>
+                )}
                 <div
                   className={classNames('flex flex-col w-full max-w-chat mx-auto z-prompt relative', {
                     'sticky bottom-four': chatStarted,

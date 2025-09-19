@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ComponentType, type ReactNode } from 'react';
+import { useCallback, useMemo, useState, type ComponentType, type ReactNode } from 'react';
 import { Button } from '@ui/Button';
 import type { Id } from '@convex/_generated/dataModel';
 import {
@@ -21,7 +21,6 @@ type WorkspaceTool = 'document' | 'data' | 'templates' | 'charts' | 'reports';
 
 interface PromptWorkspaceProps {
   chatStarted: boolean;
-  sessionId?: Id<'sessions'>;
 }
 
 interface TemplateSummary {
@@ -59,7 +58,7 @@ const TOOL_COPY: Record<WorkspaceTool, { title: string; description: string }> =
   },
 };
 
-export function PromptWorkspace({ chatStarted, sessionId }: PromptWorkspaceProps) {
+export function PromptWorkspace({ chatStarted }: PromptWorkspaceProps) {
   const [activeTool, setActiveTool] = useState<WorkspaceTool | null>(null);
   const [lastDocumentId, setLastDocumentId] = useState<Id<'uploadedDocuments'> | null>(null);
   const [lastDataFileId, setLastDataFileId] = useState<Id<'dataFiles'> | null>(null);
@@ -175,12 +174,6 @@ export function PromptWorkspace({ chatStarted, sessionId }: PromptWorkspaceProps
     setActiveTool((current) => (current === tool ? null : tool));
   }, []);
 
-  useEffect(() => {
-    if (chatStarted) {
-      setActiveTool(null);
-    }
-  }, [chatStarted]);
-
   const resetWorkspace = useCallback(() => {
     setLastDocumentId(null);
     setLastDataFileId(null);
@@ -227,7 +220,6 @@ export function PromptWorkspace({ chatStarted, sessionId }: PromptWorkspaceProps
       <div className="space-y-4">
         <DocumentUploader
           className="w-full"
-          sessionId={sessionId}
           onUploadComplete={(documentId) => {
             setLastDocumentId(documentId);
             toast.success('Document uploaded and ready to reference.');
@@ -248,7 +240,6 @@ export function PromptWorkspace({ chatStarted, sessionId }: PromptWorkspaceProps
       <div className="space-y-4">
         <DataUploader
           className="w-full"
-          sessionId={sessionId}
           onUploadComplete={(dataFileId) => {
             setLastDataFileId(dataFileId);
             toast.success('Data file ingested for analysis.');
