@@ -253,7 +253,9 @@ export default function Reports() {
                             </div>
                             <p className="text-bolt-elements-textSecondary mb-3">{description}</p>
                             {summary && (
-                              <p className="text-bolt-elements-textSecondary mb-4 text-sm italic">&ldquo;{summary}&rdquo;</p>
+                              <p className="text-bolt-elements-textSecondary mb-4 text-sm italic">
+                                &ldquo;{summary}&rdquo;
+                              </p>
                             )}
                           </div>
                         </div>
@@ -296,7 +298,7 @@ export default function Reports() {
                             {sections.map((section, index) => (
                               <span
                                 key={index}
-                                className="text-bolt-elements-textSecondary rounded border border-bolt-elements-borderColor bg-bolt-elements-background-depth-1 px-2 py-1 text-xs"
+                                className="text-bolt-elements-textSecondary border-bolt-elements-borderColor rounded border bg-bolt-elements-background-depth-1 px-2 py-1 text-xs"
                               >
                                 {section}
                               </span>
