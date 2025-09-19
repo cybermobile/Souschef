@@ -47,6 +47,14 @@ import { useReferralCode, useReferralStats } from '~/lib/hooks/useReferralCode';
 import { useUsage } from '~/lib/stores/usage';
 import { hasAnyApiKeySet, hasApiKeySet } from '~/lib/common/apiKey';
 import { chatSyncState } from '~/lib/stores/startup/chatSyncState';
+import {
+  MAX_DOCUMENT_SNIPPET_CHARS,
+  extractHeadingTexts,
+  parseDocumentStructure,
+  summarizeStructureNotes,
+  trimDocumentText,
+  type DocumentContextSummary,
+} from '~/lib/common/documentContext';
 
 const logger = createScopedLogger('Chat');
 
@@ -185,6 +193,52 @@ export const Chat = memo(
         () => workbenchStore.userWrites,
       ),
     );
+
+    const sessionDocuments = useQuery(api.queries.uploadedDocuments.listForSession, sessionId ? { sessionId } : 'skip');
+
+    const documentContext = useMemo<DocumentContextSummary[]>(() => {
+      if (!sessionDocuments || !Array.isArray(sessionDocuments)) {
+        return [];
+      }
+
+      const summaries: DocumentContextSummary[] = [];
+
+      for (const doc of sessionDocuments) {
+        if (doc?.processingStatus !== 'completed' || typeof doc?.extractedText !== 'string') {
+          continue;
+        }
+
+        const text = doc.extractedText.trim();
+        if (!text) {
+          continue;
+        }
+
+        const { snippet, isTruncated } = trimDocumentText(text, MAX_DOCUMENT_SNIPPET_CHARS);
+        const structure = parseDocumentStructure(doc.documentStructure);
+
+        summaries.push({
+          id: doc._id,
+          fileName: doc.fileName,
+          fileType: doc.fileType,
+          fileSize: doc.fileSize,
+          uploadedAt: doc.uploadedAt,
+          status: doc.processingStatus,
+          documentType: doc.documentType,
+          wordCount: doc.wordCount,
+          pageCount: doc.pageCount,
+          snippet,
+          isTruncated,
+          headings: extractHeadingTexts(structure),
+          structureNotes: summarizeStructureNotes(structure),
+        });
+
+        if (summaries.length >= 3) {
+          break;
+        }
+      }
+
+      return summaries;
+    }, [sessionDocuments]);
 
     const checkApiKeyForCurrentModel = useCallback(
       (model: ModelSelection): { hasMissingKey: boolean; provider?: ModelProvider; requireKey: boolean } => {
@@ -367,6 +421,7 @@ export const Chat = memo(
           featureFlags: {
             enableResend,
           },
+          documentContext,
         };
       },
       maxSteps: 64,
@@ -423,6 +478,7 @@ export const Chat = memo(
     }, [setMessages, syncState.subchatIndex]);
 
     setChefDebugProperty('messages', messages);
+    setChefDebugProperty('documentContext', documentContext);
 
     // AKA "processed messages," since parsing has side effects
     const { parsedMessages, parseMessages } = useMessageParser(partCache);
@@ -456,10 +512,19 @@ export const Chat = memo(
         return;
       }
 
+      const animateIfPresent = (selector: string, keyframes: Record<string, any>, options?: Record<string, any>) => {
+        const element = animationScope.current?.querySelector(selector);
+        if (!element) {
+          return Promise.resolve();
+        }
+
+        return animate(element, keyframes, options).finished;
+      };
+
       await Promise.all([
-        animate('#suggestions', { opacity: 0, display: 'none' }, { duration: 0.1 }),
-        animate('#intro', { opacity: 0, flex: 1 }, { duration: 0.2, ease: cubicEasingFn }),
-        animate('#footer', { opacity: 0, display: 'none' }, { duration: 0.2 }),
+        animateIfPresent('#suggestions', { opacity: 0, display: 'none' }, { duration: 0.1 }),
+        animateIfPresent('#intro', { opacity: 0, flex: 1 }, { duration: 0.2, ease: cubicEasingFn }),
+        animateIfPresent('#footer', { opacity: 0, display: 'none' }, { duration: 0.2 }),
       ]);
 
       chatStore.setKey('started', true);

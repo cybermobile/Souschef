@@ -237,8 +237,8 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                   <div>
                     <h3 className="font-medium text-blue-900">AI-Powered Template Matching</h3>
                     <p className="mt-1 text-sm text-blue-700">
-                      Based on your document content, we&apos;ve found {suggestedTemplatesWithData.length} templates that
-                      closely match your needs.
+                      Based on your document content, we&apos;ve found {suggestedTemplatesWithData.length} templates
+                      that closely match your needs.
                     </p>
                   </div>
                 </div>

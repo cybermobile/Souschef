@@ -19,7 +19,7 @@ interface DataUploaderProps {
   className?: string;
 }
 
-interface DataPreview {
+export interface DataPreview {
   fileName: string;
   fileType: string;
   headers: string[];
@@ -42,7 +42,10 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
   const [dataPreview, setDataPreview] = useState<DataPreview | null>(null);
   const [processingStep, setProcessingStep] = useState<string>('');
   const [currentFile, setCurrentFile] = useState<File | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const authState = useChefAuth();
+  const canUpload = authState.kind === 'fullyLoggedIn';
   const sessionIdToUse = useMemo(() => {
     if (sessionId) {
       return sessionId;
@@ -53,7 +56,7 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
   const generateUploadUrl = useMutation(convexApi.mutations.storage.generateUploadUrl);
   const processDataFile = useAction(convexApi['actions/dataProcessing'].processDataFile);
 
-  const detectColumnType = (values: any[]): string => {
+  const detectColumnType = useCallback((values: any[]): string => {
     const nonEmptyValues = values.filter((v) => v !== null && v !== undefined && v !== '');
     if (nonEmptyValues.length === 0) {
       return 'string';
@@ -92,96 +95,102 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
       return 'date';
     }
     return 'string';
-  };
+  }, []);
 
-  const parseCSV = (file: File): Promise<DataPreview> => {
-    return new Promise((resolve, reject) => {
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => {
+  const parseCSV = useCallback(
+    (file: File): Promise<DataPreview> => {
+      return new Promise((resolve, reject) => {
+        Papa.parse(file, {
+          header: true,
+          skipEmptyLines: true,
+          complete: (results) => {
+            try {
+              const headers = results.meta.fields || [];
+              const rows = results.data as any[];
+
+              // Analyze column types
+              const columnTypes: { [key: string]: string } = {};
+              headers.forEach((header) => {
+                const columnValues = rows.map((row) => row[header]);
+                columnTypes[header] = detectColumnType(columnValues);
+              });
+
+              const preview: DataPreview = {
+                fileName: file.name,
+                fileType: 'csv',
+                headers,
+                sampleRows: rows.slice(0, 5).map((row) => headers.map((h) => row[h])),
+                totalRows: rows.length,
+                columnTypes,
+              };
+
+              resolve(preview);
+            } catch (_error) {
+              reject(new Error('Failed to parse CSV file'));
+            }
+          },
+          error: (error) => {
+            reject(new Error(`CSV parsing error: ${error.message}`));
+          },
+        });
+      });
+    },
+    [detectColumnType],
+  );
+
+  const parseExcel = useCallback(
+    (file: File): Promise<DataPreview> => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
           try {
-            const headers = results.meta.fields || [];
-            const rows = results.data as any[];
+            const data = new Uint8Array(e.target?.result as ArrayBuffer);
+            const workbook = XLSX.read(data, { type: 'array' });
+
+            // Use first sheet
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+
+            // Convert to JSON
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+
+            if (jsonData.length === 0) {
+              reject(new Error('Excel file appears to be empty'));
+              return;
+            }
+
+            const headers = jsonData[0].map((h) => String(h || ''));
+            const dataRows = jsonData
+              .slice(1)
+              .filter((row) => row.some((cell) => cell !== null && cell !== undefined && cell !== ''));
 
             // Analyze column types
             const columnTypes: { [key: string]: string } = {};
-            headers.forEach((header) => {
-              const columnValues = rows.map((row) => row[header]);
+            headers.forEach((header, index) => {
+              const columnValues = dataRows.map((row) => row[index]);
               columnTypes[header] = detectColumnType(columnValues);
             });
 
             const preview: DataPreview = {
               fileName: file.name,
-              fileType: 'csv',
+              fileType: file.name.endsWith('.xlsx') ? 'xlsx' : 'xls',
               headers,
-              sampleRows: rows.slice(0, 5).map((row) => headers.map((h) => row[h])),
-              totalRows: rows.length,
+              sampleRows: dataRows.slice(0, 5),
+              totalRows: dataRows.length,
               columnTypes,
             };
 
             resolve(preview);
-          } catch (error) {
-            reject(new Error('Failed to parse CSV file'));
+          } catch (_error) {
+            reject(new Error('Failed to parse Excel file'));
           }
-        },
-        error: (error) => {
-          reject(new Error(`CSV parsing error: ${error.message}`));
-        },
+        };
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsArrayBuffer(file);
       });
-    });
-  };
-
-  const parseExcel = (file: File): Promise<DataPreview> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const data = new Uint8Array(e.target?.result as ArrayBuffer);
-          const workbook = XLSX.read(data, { type: 'array' });
-
-          // Use first sheet
-          const sheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[sheetName];
-
-          // Convert to JSON
-          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
-
-          if (jsonData.length === 0) {
-            reject(new Error('Excel file appears to be empty'));
-            return;
-          }
-
-          const headers = jsonData[0].map((h) => String(h || ''));
-          const dataRows = jsonData
-            .slice(1)
-            .filter((row) => row.some((cell) => cell !== null && cell !== undefined && cell !== ''));
-
-          // Analyze column types
-          const columnTypes: { [key: string]: string } = {};
-          headers.forEach((header, index) => {
-            const columnValues = dataRows.map((row) => row[index]);
-            columnTypes[header] = detectColumnType(columnValues);
-          });
-
-          const preview: DataPreview = {
-            fileName: file.name,
-            fileType: file.name.endsWith('.xlsx') ? 'xlsx' : 'xls',
-            headers,
-            sampleRows: dataRows.slice(0, 5),
-            totalRows: dataRows.length,
-            columnTypes,
-          };
-
-          resolve(preview);
-        } catch (error) {
-          reject(new Error('Failed to parse Excel file'));
-        }
-      };
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsArrayBuffer(file);
-    });
-  };
+    },
+    [detectColumnType],
+  );
 
   const resolveServerFileType = (preview: DataPreview, file: File): string => {
     if (preview.fileType === 'csv') {
@@ -203,10 +212,18 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
       }
 
       const file = acceptedFiles[0];
+      if (!canUpload) {
+        const authError = 'Please sign in to upload data files.';
+        setErrorMessage(authError);
+        onUploadError?.(authError);
+        return;
+      }
       setUploading(true);
       setProgress(0);
       setDataPreview(null);
       setCurrentFile(file);
+      setErrorMessage(null);
+      setSuccessMessage(null);
 
       try {
         // Step 1: Parse and analyze the file
@@ -266,10 +283,12 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
         setProgress(100);
         setProcessingStep('Complete!');
         onUploadComplete(result.dataFileId);
+        setSuccessMessage('Data file uploaded successfully.');
       } catch (error) {
         console.error('Data upload failed:', error);
         const errorMessage = error instanceof Error ? error.message : 'Upload failed';
         onUploadError?.(errorMessage);
+        setErrorMessage(errorMessage);
       } finally {
         setTimeout(() => {
           setUploading(false);
@@ -280,6 +299,7 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
       }
     },
     [
+      canUpload,
       companyId,
       sessionIdToUse,
       onUploadComplete,
@@ -287,6 +307,8 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
       onDataPreview,
       generateUploadUrl,
       processDataFile,
+      parseCSV,
+      parseExcel,
     ],
   );
 
@@ -299,7 +321,7 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
     },
     maxSize,
     multiple: false,
-    disabled: uploading,
+    disabled: uploading || !canUpload,
   });
 
   return (
@@ -308,14 +330,33 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
         {...getRootProps()}
         className={`
           cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-all duration-200
-          ${isDragActive ? 'scale-102 border-green-400 bg-green-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'}
-          ${uploading ? 'pointer-events-none opacity-70' : ''}
+          ${isDragActive ? 'scale-105 border-green-400 bg-green-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'}
+          ${uploading || !canUpload ? 'pointer-events-none opacity-70' : ''}
           ${fileRejections.length > 0 ? 'border-red-400 bg-red-50' : ''}
         `}
       >
         <input {...getInputProps()} />
 
-        {uploading ? (
+        {!canUpload ? (
+          <div className="space-y-3">
+            <div className="flex justify-center">
+              <svg className="size-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 11c1.654 0 3-1.346 3-3S13.654 5 12 5 9 6.346 9 8s1.346 3 3 3zm0 2c-2.667 0-8 1.334-8 4v1a1 1 0 001 1h14a1 1 0 001-1v-1c0-2.666-5.333-4-8-4z"
+                />
+              </svg>
+            </div>
+            <div>
+              <p className="text-lg font-medium text-gray-900">Sign in to upload data</p>
+              <p className="mt-1 text-sm text-gray-500">
+                Connect your account so Chef can analyze spreadsheets and CSV files inline.
+              </p>
+            </div>
+          </div>
+        ) : uploading ? (
           <div className="space-y-4">
             <div className="flex justify-center">
               <svg className="size-8 animate-spin text-green-600" fill="none" viewBox="0 0 24 24">
@@ -423,10 +464,9 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
         </div>
       )}
 
-      {/* Error messages */}
-      {fileRejections.length > 0 && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-3">
-          <div className="flex">
+      {(errorMessage || fileRejections.length > 0) && (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <div className="flex items-start gap-2">
             <svg className="size-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -435,15 +475,32 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
                 d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Upload Error</h3>
-              <div className="mt-1 text-sm text-red-700">
-                {fileRejections.map(({ file, errors }) => (
-                  <div key={file.name}>
-                    <strong>{file.name}</strong>: {errors.map((e) => e.message).join(', ')}
-                  </div>
-                ))}
-              </div>
+            <div>
+              <h3 className="text-sm font-medium text-red-800">Unable to process data upload</h3>
+              {errorMessage && <p className="mt-1">{errorMessage}</p>}
+              {fileRejections.length > 0 && (
+                <ul className="mt-2 space-y-1">
+                  {fileRejections.map(({ file, errors }) => (
+                    <li key={file.name}>
+                      <strong>{file.name}</strong>: {errors.map((e) => e.message).join(', ')}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+          <div className="flex items-start gap-2">
+            <svg className="size-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <div>
+              <h3 className="text-sm font-medium text-green-800">Upload complete</h3>
+              <p className="mt-1">{successMessage}</p>
             </div>
           </div>
         </div>

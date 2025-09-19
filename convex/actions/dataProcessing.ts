@@ -39,25 +39,19 @@ export const processDataFile = action({
         throw new Error("Unable to read uploaded data file from storage");
       }
 
-      const arrayBuffer =
-        storedFile instanceof ArrayBuffer
-          ? storedFile
-          : storedFile instanceof Blob
-            ? await storedFile.arrayBuffer()
-            : null;
+      const buffer = await loadStorageFileAsBuffer(storedFile);
 
-      if (!arrayBuffer) {
-        throw new Error("Unable to decode uploaded data file");
+      if (!buffer.byteLength) {
+        throw new Error("The uploaded data file is empty. Please upload a file with content.");
       }
-
-      const buffer = Buffer.from(arrayBuffer);
       let parsedData: any[] = [];
       let headers: string[] = [];
 
       // Parse data based on file type
-      if (args.fileType === "text/csv" || args.fileName.endsWith('.csv')) {
+      if (args.fileType === "text/csv" || args.fileName.toLowerCase().endsWith(".csv")) {
         // CSV processing with papaparse
-        const Papa = await import("papaparse");
+        const papaModule = await import("papaparse");
+        const Papa = papaModule.default ?? papaModule;
         const text = new TextDecoder().decode(buffer);
         const parsed = Papa.parse(text, {
           header: true,
@@ -65,12 +59,38 @@ export const processDataFile = action({
           dynamicTyping: true,
           transformHeader: (header: string) => header.trim(),
         });
+
+        if (parsed.errors.length) {
+          const firstError = parsed.errors[0];
+          throw new Error(
+            `Failed to parse CSV file${firstError.message ? `: ${firstError.message}` : ""}`,
+          );
+        }
+
         parsedData = parsed.data;
         headers = parsed.meta.fields || [];
-      } else if (args.fileName.endsWith('.xlsx') || args.fileName.endsWith('.xls')) {
+      } else if (
+        args.fileType ===
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+        args.fileType === "application/vnd.ms-excel" ||
+        args.fileName.toLowerCase().endsWith(".xlsx") ||
+        args.fileName.toLowerCase().endsWith(".xls")
+      ) {
         // Excel processing with xlsx
-        const XLSX = await import("xlsx");
-        const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
+        const xlsxModule = await import("xlsx");
+        const XLSX = xlsxModule.default ?? xlsxModule;
+        let workbook;
+
+        try {
+          workbook = XLSX.read(buffer, { type: "buffer", cellDates: true });
+        } catch (excelError) {
+          throw new Error(
+            excelError instanceof Error
+              ? `Failed to read spreadsheet: ${excelError.message}`
+              : "Failed to read spreadsheet",
+          );
+        }
+
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
@@ -161,6 +181,31 @@ export const processDataFile = action({
     }
   },
 });
+
+async function loadStorageFileAsBuffer(file: unknown): Promise<Buffer> {
+  if (!file) {
+    throw new Error("Unable to load uploaded file");
+  }
+
+  if (Buffer.isBuffer(file)) {
+    return file;
+  }
+
+  if (file instanceof ArrayBuffer) {
+    return Buffer.from(file);
+  }
+
+  if (ArrayBuffer.isView(file)) {
+    return Buffer.from(file.buffer, file.byteOffset, file.byteLength);
+  }
+
+  if (typeof Blob !== "undefined" && file instanceof Blob) {
+    const arrayBuffer = await file.arrayBuffer();
+    return Buffer.from(arrayBuffer);
+  }
+
+  throw new Error("Unsupported uploaded file data type");
+}
 
 function analyzeDataStructure(data: any[], headers: string[], detectTypes: boolean) {
   const analysis = {
@@ -272,14 +317,19 @@ function findCorrelations(data: any[], columns: any[]) {
         .map(row => [Number(row[col1]), Number(row[col2])])
         .filter(([a, b]) => !isNaN(a) && !isNaN(b));
 
-      if (pairs.length < 2) continue;
+        if (pairs.length < 2) {
+          continue;
+        }
 
       const correlation = calculatePearsonCorrelation(pairs);
       const absCorr = Math.abs(correlation);
 
       let strength: 'weak' | 'moderate' | 'strong' = 'weak';
-      if (absCorr > 0.7) strength = 'strong';
-      else if (absCorr > 0.4) strength = 'moderate';
+        if (absCorr > 0.7) {
+          strength = 'strong';
+        } else if (absCorr > 0.4) {
+          strength = 'moderate';
+        }
 
       if (absCorr > 0.3) { // Only include notable correlations
         correlations.push({
@@ -297,7 +347,9 @@ function findCorrelations(data: any[], columns: any[]) {
 
 function calculatePearsonCorrelation(pairs: number[][]): number {
   const n = pairs.length;
-  if (n === 0) return 0;
+    if (n === 0) {
+      return 0;
+    }
 
   const sumX = pairs.reduce((sum, [x]) => sum + x, 0);
   const sumY = pairs.reduce((sum, [, y]) => sum + y, 0);
