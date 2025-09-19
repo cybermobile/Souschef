@@ -507,7 +507,7 @@ export const Chat = memo(
 
     const toolStatus = useCurrentToolStatus();
 
-    const runAnimation = async () => {
+    const runAnimation = useCallback(async () => {
       if (chatStarted) {
         return;
       }
@@ -530,7 +530,13 @@ export const Chat = memo(
       chatStore.setKey('started', true);
 
       setChatStarted(true);
-    };
+    }, [animate, animationScope, chatStarted]);
+
+    useEffect(() => {
+      if (!chatStarted && messages.length > 0) {
+        void runAnimation();
+      }
+    }, [chatStarted, messages.length, runAnimation]);
 
     const sendMessage = async (messageInput: string) => {
       const now = Date.now();
