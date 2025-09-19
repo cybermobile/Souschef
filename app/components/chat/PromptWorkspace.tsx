@@ -15,6 +15,7 @@ import { ProcessingStatus } from '~/components/document/ProcessingStatus';
 import { TemplateSelector } from '~/components/template/TemplateSelector';
 import { ChartBuilder, type DataColumn } from '~/components/charts/ChartBuilder';
 import { ReportViewer } from '~/components/reports/ReportViewer';
+import { toast } from 'sonner';
 
 type WorkspaceTool = 'document' | 'data' | 'templates' | 'charts' | 'reports';
 
@@ -221,6 +222,10 @@ export function PromptWorkspace({ chatStarted }: PromptWorkspaceProps) {
           className="w-full"
           onUploadComplete={(documentId) => {
             setLastDocumentId(documentId);
+            toast.success('Document uploaded and ready to reference.');
+          }}
+          onUploadError={(message) => {
+            toast.error(message);
           }}
         />
         {lastDocumentId && (
@@ -237,6 +242,11 @@ export function PromptWorkspace({ chatStarted }: PromptWorkspaceProps) {
           className="w-full"
           onUploadComplete={(dataFileId) => {
             setLastDataFileId(dataFileId);
+            toast.success('Data file ingested for analysis.');
+          }}
+          onUploadError={(error) => {
+            setLastDataFileId(null);
+            toast.error(error);
           }}
           onDataPreview={(preview) => {
             setDataPreview(preview);

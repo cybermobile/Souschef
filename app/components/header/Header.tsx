@@ -28,7 +28,7 @@ export function Header({ hideSidebarIcon = false }: { hideSidebarIcon?: boolean 
   const location = useLocation();
 
   const sessionId = useConvexSessionIdOrNullOrLoading();
-  const isLoggedIn = sessionId !== null;
+  const isLoggedIn = typeof sessionId === 'string';
   const showSidebarIcon = !hideSidebarIcon && isLoggedIn;
 
   const profile = useStore(profileStore);
@@ -55,6 +55,8 @@ export function Header({ hideSidebarIcon = false }: { hideSidebarIcon?: boolean 
     { href: '/reports', label: 'Reports' },
   ];
 
+  const showNavLinks = isLoggedIn;
+
   return (
     <header
       className={
@@ -77,25 +79,27 @@ export function Header({ hideSidebarIcon = false }: { hideSidebarIcon?: boolean 
         </a>
 
         {/* Navigation Links */}
-        <nav className="ml-8 flex items-center space-x-6">
-          {navItems.map(({ href, label }) => {
-            const isActive = location.pathname === href || location.pathname.startsWith(`${href}/`);
-            return (
-              <a
-                key={href}
-                href={href}
-                className={`text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'text-bolt-elements-textPrimary'
-                    : 'text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary'
-                }`}
-                aria-current={isActive ? 'page' : undefined}
-              >
-                {label}
-              </a>
-            );
-          })}
-        </nav>
+        {showNavLinks && (
+          <nav className="ml-8 flex items-center space-x-6">
+            {navItems.map(({ href, label }) => {
+              const isActive = location.pathname === href || location.pathname.startsWith(`${href}/`);
+              return (
+                <a
+                  key={href}
+                  href={href}
+                  className={`text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'text-bolt-elements-textPrimary'
+                      : 'text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary'
+                  }`}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  {label}
+                </a>
+              );
+            })}
+          </nav>
+        )}
       </div>
       <>
         {chat.started && (
