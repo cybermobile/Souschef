@@ -456,10 +456,19 @@ export const Chat = memo(
         return;
       }
 
+      const animateIfPresent = (selector: string, keyframes: Record<string, any>, options?: Record<string, any>) => {
+        const element = animationScope.current?.querySelector(selector);
+        if (!element) {
+          return Promise.resolve();
+        }
+
+        return animate(element, keyframes, options).finished;
+      };
+
       await Promise.all([
-        animate('#suggestions', { opacity: 0, display: 'none' }, { duration: 0.1 }),
-        animate('#intro', { opacity: 0, flex: 1 }, { duration: 0.2, ease: cubicEasingFn }),
-        animate('#footer', { opacity: 0, display: 'none' }, { duration: 0.2 }),
+        animateIfPresent('#suggestions', { opacity: 0, display: 'none' }, { duration: 0.1 }),
+        animateIfPresent('#intro', { opacity: 0, flex: 1 }, { duration: 0.2, ease: cubicEasingFn }),
+        animateIfPresent('#footer', { opacity: 0, display: 'none' }, { duration: 0.2 }),
       ]);
 
       chatStore.setKey('started', true);
