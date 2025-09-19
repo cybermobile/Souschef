@@ -9,12 +9,22 @@ import { useLDClient, withLDProvider, basicLogger } from 'launchdarkly-react-cli
 import { api } from '@convex/_generated/api';
 import { useAuth } from '@workos-inc/authkit-react';
 
-export const UserProvider = withLDProvider<any>({
-  clientSideID: import.meta.env.VITE_LD_CLIENT_SIDE_ID,
-  options: {
-    logger: basicLogger({ level: 'error' }),
-  },
-})(UserProviderInner);
+const clientSideId = import.meta.env.VITE_LD_CLIENT_SIDE_ID;
+
+let UserProviderComponent: typeof UserProviderInner;
+
+if (clientSideId) {
+  UserProviderComponent = withLDProvider<any>({
+    clientSideID: clientSideId,
+    options: {
+      logger: basicLogger({ level: 'error' }),
+    },
+  })(UserProviderInner);
+} else {
+  UserProviderComponent = UserProviderInner;
+}
+
+export const UserProvider = UserProviderComponent;
 
 function UserProviderInner({ children }: { children: React.ReactNode }) {
   const launchdarkly = useLDClient();

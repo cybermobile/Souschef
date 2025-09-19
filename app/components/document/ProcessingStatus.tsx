@@ -74,7 +74,7 @@ export const ProcessingStatus: React.FC<ProcessingStatusProps> = ({
       startTime: status.startTime ?? undefined,
       endTime: status.endTime ?? undefined,
     };
-  }, [documentId, documentStatus, dataFileId, dataFileStatus]);
+  }, [documentId, documentStatus, dataFileStatus]);
 
   if (!processingState) {
     return null;
