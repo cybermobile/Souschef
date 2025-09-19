@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { fetchOptIns } from '~/lib/convexOptins';
 import { setChefDebugProperty } from 'chef-agent/utils/chefDebug';
 import { useAuth } from '@workos-inc/authkit-react';
+import { LoginRequiredError } from '@workos-inc/authkit-js';
 type ChefAuthState =
   | {
       kind: 'loading';
@@ -109,10 +110,16 @@ export const ChefAuthProvider = ({
           // Call this to prove that WorkOS is set up
           await getAccessToken({});
           authRetries.current = 0;
-        } catch (_e) {
-          if (!workOsAccessTokenWarningLogged.current) {
-            console.error('Unable to fetch access token from WorkOS');
-            workOsAccessTokenWarningLogged.current = true;
+        } catch (error) {
+          const isLoginRequiredError =
+            error instanceof LoginRequiredError ||
+            (error instanceof Error &&
+              (error.name === 'LoginRequiredError' || error.message === 'No access token available'));
+          if (!isLoginRequiredError) {
+            if (!workOsAccessTokenWarningLogged.current) {
+              console.error('Unable to fetch access token from WorkOS', error);
+              workOsAccessTokenWarningLogged.current = true;
+            }
           }
           if (authRetries.current < 3 && verifySessionTimeout === null) {
             authRetries.current++;
