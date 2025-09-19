@@ -114,7 +114,6 @@ export const MessageInput = memo(function MessageInput({
 }) {
   const [isEnhancing, setIsEnhancing] = useState(false);
   const sessionId = useConvexSessionIdOrNullOrLoading();
-  const resolvedSessionId = sessionId ?? undefined;
   const chefAuthState = useChefAuth();
   const selectedTeamSlug = useSelectedTeamSlug();
   const convex = useConvex();
@@ -257,7 +256,7 @@ export const MessageInput = memo(function MessageInput({
   return (
     <div className="relative z-20 mx-auto w-full max-w-chat rounded-xl shadow transition-all duration-200">
       <div className="rounded-xl bg-background-primary/75 backdrop-blur-md">
-        {workspaceEnabled && <PromptWorkspace chatStarted={chatStarted} sessionId={resolvedSessionId} />}
+        {workspaceEnabled && <PromptWorkspace chatStarted={chatStarted} />}
         <div
           className={classNames(
             'border transition-all has-[textarea:focus]:border-border-selected',
