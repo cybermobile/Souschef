@@ -1,5 +1,13 @@
 import { v } from "convex/values";
-import { action, internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
+import {
+  action,
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+  type MutationCtx,
+  type QueryCtx,
+} from "./_generated/server";
 import { ConvexError } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { getChatByIdOrUrlIdEnsuringAccess } from "./messages";
@@ -225,6 +233,23 @@ export const saveCachedProfile = internalMutation({
     await ctx.db.patch(member._id, {
       cachedProfile: profile,
     });
+  },
+});
+
+export const getCurrentMemberForActions = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    return await getCurrentMember(ctx);
+  },
+});
+
+export const getMemberByConvexId = internalQuery({
+  args: { convexMemberId: v.string() },
+  handler: async (ctx, args) => {
+    return ctx.db
+      .query("convexMembers")
+      .withIndex("byConvexMemberId", (q) => q.eq("convexMemberId", args.convexMemberId))
+      .first();
   },
 });
 

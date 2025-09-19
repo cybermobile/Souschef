@@ -3,11 +3,10 @@
 import { Buffer } from "node:buffer";
 import { action } from "../_generated/server";
 import { v } from "convex/values";
-import { api } from "../_generated/api";
-import { getCurrentMember } from "../sessions";
+import { api, internal } from "../_generated/api";
 import type { Id } from "../_generated/dataModel";
 
-export const processUploadedDocument: any = action({
+export const processUploadedDocument = action({
   args: {
     storageId: v.id("_storage"),
     fileName: v.string(),
@@ -24,14 +23,19 @@ export const processUploadedDocument: any = action({
   ): Promise<{ success: boolean; documentId?: Id<"uploadedDocuments">; extractedText?: string; structure?: any; metadata?: any; error?: string }> => {
     try {
       const processingStart = Date.now();
-      const member = await getCurrentMember(ctx);
-      const fileBuffer = await ctx.storage.get(args.storageId);
-      if (!fileBuffer) {
+      const member = await ctx.runQuery(internal.sessions.getCurrentMemberForActions, {});
+      const storedFile = await ctx.storage.get(args.storageId);
+      if (!storedFile) {
         throw new Error("Unable to read uploaded document from storage");
       }
 
-      const buffer = Buffer.from(fileBuffer);
+      const arrayBuffer =
+        storedFile instanceof Blob ? await storedFile.arrayBuffer() : storedFile;
+      const buffer = Buffer.from(arrayBuffer);
       const fileUrl = await ctx.storage.getUrl(args.storageId);
+      if (!fileUrl) {
+        throw new Error("Unable to generate storage URL for uploaded document");
+      }
       let extractedText = "";
       let metadata: any = {};
 

@@ -158,7 +158,6 @@ export default function Templates() {
               <ClientOnly>
                 {() => (
                   <TemplateSelector
-                    templates={templates}
                     onTemplateSelect={(template) => {
                       console.log('Template selected:', template);
                       // TODO: Handle template selection

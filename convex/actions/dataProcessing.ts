@@ -3,11 +3,10 @@
 import { Buffer } from "node:buffer";
 import { action } from "../_generated/server";
 import { v } from "convex/values";
-import { api } from "../_generated/api";
-import { getCurrentMember } from "../sessions";
+import { api, internal } from "../_generated/api";
 import type { Id } from "../_generated/dataModel";
 
-export const processDataFile: any = action({
+export const processDataFile = action({
   args: {
     storageId: v.id("_storage"),
     fileName: v.string(),
@@ -34,13 +33,15 @@ export const processDataFile: any = action({
   }> => {
     try {
       const processingStart = Date.now();
-      const member = await getCurrentMember(ctx);
-      const fileBuffer = await ctx.storage.get(args.storageId);
-      if (!fileBuffer) {
+      const member = await ctx.runQuery(internal.sessions.getCurrentMemberForActions, {});
+      const storedFile = await ctx.storage.get(args.storageId);
+      if (!storedFile) {
         throw new Error("Unable to read uploaded data file from storage");
       }
 
-      const buffer = Buffer.from(fileBuffer);
+      const arrayBuffer =
+        storedFile instanceof Blob ? await storedFile.arrayBuffer() : storedFile;
+      const buffer = Buffer.from(arrayBuffer);
       let parsedData: any[] = [];
       let headers: string[] = [];
 
@@ -103,6 +104,9 @@ export const processDataFile: any = action({
 
       // Store processed data file
       const fileUrl = await ctx.storage.getUrl(args.storageId);
+      if (!fileUrl) {
+        throw new Error("Unable to generate storage URL for uploaded data file");
+      }
       const completedAt = Date.now();
       const dataFileId = await ctx.runMutation(api.mutations.dataFiles.create, {
         companyId: args.companyId ?? member.cachedProfile?.id ?? member._id,

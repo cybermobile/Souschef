@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useQuery } from 'convex/react';
 import type { Id } from '@convex/_generated/dataModel';
-import { api } from '@convex/_generated/api';
+import { convexApi } from '~/lib/convexClient';
 
 interface ProcessingStatusProps {
   documentId?: Id<'uploadedDocuments'>;
@@ -30,11 +30,11 @@ export const ProcessingStatus: React.FC<ProcessingStatusProps> = ({
   className = '',
 }) => {
   const documentStatus = useQuery(
-    documentId ? api.queries.uploadedDocuments.getProcessingStatus : 'skip',
+    convexApi['queries/uploadedDocuments'].getProcessingStatus,
     documentId ? { documentId } : 'skip',
   );
   const dataFileStatus = useQuery(
-    dataFileId ? api.queries.dataFiles.getProcessingStatus : 'skip',
+    convexApi['queries/dataFiles'].getProcessingStatus,
     dataFileId ? { dataFileId } : 'skip',
   );
 

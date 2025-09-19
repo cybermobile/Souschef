@@ -22,7 +22,8 @@ interface TemplateSuggestion {
 }
 
 interface TemplateSelectorProps {
-  companyId: string;
+  companyId?: string;
+  templates?: Template[];
   suggestedTemplates?: TemplateSuggestion[];
   onTemplateSelect: (templateId: string) => void;
   selectedTemplateId?: string;
@@ -80,6 +81,7 @@ const useMockTemplates = (companyId: string): Template[] => {
 
 export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   companyId,
+  templates,
   suggestedTemplates = [],
   onTemplateSelect,
   selectedTemplateId,
@@ -89,7 +91,8 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   const [selectedType, setSelectedType] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const allTemplates = useMockTemplates(companyId);
+  const fallbackTemplates = useMockTemplates(companyId ?? '');
+  const allTemplates = templates ?? fallbackTemplates;
 
   const templateTypes = useMemo(() => {
     const types = ['all', ...new Set(allTemplates.map((t) => t.templateType))];
@@ -115,7 +118,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
         const template = allTemplates.find((t) => t._id === suggestion.templateId);
         return template ? { ...suggestion, template } : null;
       })
-      .filter(Boolean);
+      .filter((suggestion): suggestion is TemplateSuggestion & { template: Template } => suggestion !== null);
   }, [suggestedTemplates, allTemplates]);
 
   const getMatchQualityColor = (score: number): string => {

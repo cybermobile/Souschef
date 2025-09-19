@@ -15,7 +15,7 @@ import { Line, Bar, Pie, Doughnut } from 'react-chartjs-2';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement);
 
-interface DataColumn {
+export interface DataColumn {
   name: string;
   type: 'string' | 'number' | 'date' | 'boolean';
   values: any[];
