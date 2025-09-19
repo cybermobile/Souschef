@@ -1,10 +1,26 @@
+import { useMemo } from 'react';
 import { json } from '@vercel/remix';
 import type { LoaderFunctionArgs, MetaFunction } from '@vercel/remix';
 import { useLoaderData } from '@remix-run/react';
 import { ClientOnly } from 'remix-utils/client-only';
 import { Header } from '~/components/header/Header';
 import { ChartBuilder } from '~/components/charts/ChartBuilder';
+import type { DataColumn } from '~/components/charts/ChartBuilder';
 import { DataUploader } from '~/components/document/DataUploader';
+
+const VALID_COLUMN_TYPES = ['string', 'number', 'boolean', 'date'] as const;
+
+const isValidColumnType = (type: string): type is (typeof VALID_COLUMN_TYPES)[number] =>
+  (VALID_COLUMN_TYPES as readonly string[]).includes(type);
+
+const toChartColumns = (
+  columns: Array<{ name: string; type: string; values: unknown }>,
+): DataColumn[] =>
+  columns.map((column) => ({
+    name: column.name,
+    type: isValidColumnType(column.type) ? column.type : 'string',
+    values: Array.isArray(column.values) ? (column.values as any[]) : ([] as any[]),
+  }));
 
 export const meta: MetaFunction = () => {
   return [
@@ -99,7 +115,18 @@ export const loader = async (args: LoaderFunctionArgs) => {
 };
 
 export default function Visualize() {
-  const { dataFiles, savedCharts, chartRecommendations } = useLoaderData<typeof loader>();
+  const { dataFiles: rawDataFiles, savedCharts, chartRecommendations } = useLoaderData<typeof loader>();
+
+  const dataFiles = useMemo(
+    () =>
+      rawDataFiles.map((file) => ({
+        ...file,
+        columns: toChartColumns(
+          file.columns as Array<{ name: string; type: string; values: unknown }>,
+        ),
+      })),
+    [rawDataFiles],
+  );
 
   return (
     <div className="flex size-full flex-col bg-bolt-elements-background-depth-1">
@@ -123,9 +150,16 @@ export default function Visualize() {
                   <ClientOnly>
                     {() => (
                       <DataUploader
-                        onUpload={(file, data) => {
-                          console.log('Data uploaded:', file, data);
-                          // TODO: Handle data upload
+                        onUploadComplete={(dataFileId) => {
+                          console.log('Data uploaded:', dataFileId);
+                          // TODO: Handle data upload completion
+                        }}
+                        onDataPreview={(preview) => {
+                          console.log('Data preview:', preview);
+                          // TODO: Handle preview display
+                        }}
+                        onUploadError={(error) => {
+                          console.error('Data upload failed:', error);
                         }}
                         className="mb-4"
                       />

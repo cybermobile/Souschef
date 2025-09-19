@@ -364,8 +364,10 @@ export default function Reports() {
                         },
                         formatting: {
                           theme: 'professional',
-                          headerStyle: 'standard',
-                          footerIncluded: true,
+                          includePageNumbers: true,
+                          includeTOC: false,
+                          includeHeader: true,
+                          includeFooter: true,
                         },
                       }}
                       onExport={(format) => {

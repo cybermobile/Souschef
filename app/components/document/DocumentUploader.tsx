@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useAction, useMutation } from 'convex/react';
 import type { Id } from '@convex/_generated/dataModel';
-import { api } from '@convex/_generated/api';
+import { convexApi } from '~/lib/convexClient';
 
 import { useChefAuth } from '~/components/chat/ChefAuthWrapper';
 import { formatFileSize } from '~/lib/utils/fileSize';
@@ -39,8 +39,8 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
     return authState.kind === 'fullyLoggedIn' ? authState.sessionId : undefined;
   }, [authState, sessionId]);
 
-  const generateUploadUrl = useMutation(api.mutations.storage.generateUploadUrl);
-  const processDocument = useAction(api.actions.documentProcessing.processUploadedDocument);
+  const generateUploadUrl = useMutation(convexApi.mutations.storage.generateUploadUrl);
+  const processDocument = useAction(convexApi['actions/documentProcessing'].processUploadedDocument);
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {

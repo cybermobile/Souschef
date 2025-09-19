@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useAction, useMutation } from 'convex/react';
 import type { Id } from '@convex/_generated/dataModel';
-import { api } from '@convex/_generated/api';
+import { convexApi } from '~/lib/convexClient';
 import * as Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 
@@ -50,8 +50,8 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
     return authState.kind === 'fullyLoggedIn' ? authState.sessionId : undefined;
   }, [authState, sessionId]);
 
-  const generateUploadUrl = useMutation(api.mutations.storage.generateUploadUrl);
-  const processDataFile = useAction(api.actions.dataProcessing.processDataFile);
+  const generateUploadUrl = useMutation(convexApi.mutations.storage.generateUploadUrl);
+  const processDataFile = useAction(convexApi['actions/dataProcessing'].processDataFile);
 
   const detectColumnType = (values: any[]): string => {
     const nonEmptyValues = values.filter((v) => v !== null && v !== undefined && v !== '');
