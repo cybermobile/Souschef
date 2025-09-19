@@ -7,15 +7,14 @@ import { Header } from '~/components/header/Header';
 import { ChartBuilder } from '~/components/charts/ChartBuilder';
 import type { DataColumn } from '~/components/charts/ChartBuilder';
 import { DataUploader } from '~/components/document/DataUploader';
+import { ChefAuthProvider } from '~/components/chat/ChefAuthWrapper';
 
 const VALID_COLUMN_TYPES = ['string', 'number', 'boolean', 'date'] as const;
 
 const isValidColumnType = (type: string): type is (typeof VALID_COLUMN_TYPES)[number] =>
   (VALID_COLUMN_TYPES as readonly string[]).includes(type);
 
-const toChartColumns = (
-  columns: Array<{ name: string; type: string; values: unknown }>,
-): DataColumn[] =>
+const toChartColumns = (columns: Array<{ name: string; type: string; values: unknown }>): DataColumn[] =>
   columns.map((column) => ({
     name: column.name,
     type: isValidColumnType(column.type) ? column.type : 'string',
@@ -29,7 +28,7 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export const loader = async (args: LoaderFunctionArgs) => {
+export const loader = async (_args: LoaderFunctionArgs) => {
   // TODO: Fetch user's data files and charts from Convex
   // For now, return mock data
   return json({
@@ -115,15 +114,21 @@ export const loader = async (args: LoaderFunctionArgs) => {
 };
 
 export default function Visualize() {
+  return (
+    <ChefAuthProvider redirectIfUnauthenticated={true}>
+      <VisualizeContent />
+    </ChefAuthProvider>
+  );
+}
+
+function VisualizeContent() {
   const { dataFiles: rawDataFiles, savedCharts, chartRecommendations } = useLoaderData<typeof loader>();
 
   const dataFiles = useMemo(
     () =>
       rawDataFiles.map((file) => ({
         ...file,
-        columns: toChartColumns(
-          file.columns as Array<{ name: string; type: string; values: unknown }>,
-        ),
+        columns: toChartColumns(file.columns as Array<{ name: string; type: string; values: unknown }>),
       })),
     [rawDataFiles],
   );

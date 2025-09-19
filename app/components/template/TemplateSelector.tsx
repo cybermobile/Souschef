@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { useQuery } from 'convex/react';
 
 interface Template {
   _id: string;
@@ -30,57 +29,8 @@ interface TemplateSelectorProps {
   className?: string;
 }
 
-// Mock data for development - replace with actual Convex query
-const useMockTemplates = (companyId: string): Template[] => {
-  // This would be: const templates = useQuery(api.templates.getCompanyTemplates, { companyId });
-  return [
-    {
-      _id: 'template_1',
-      templateName: 'Quarterly Business Report',
-      templateType: 'report',
-      description: 'Comprehensive quarterly business performance report with financial metrics and analysis',
-      usageCount: 23,
-      tags: ['financial', 'quarterly', 'performance'],
-      industry: 'financial',
-      createdAt: Date.now() - 86400000,
-      approvalStatus: 'approved',
-    },
-    {
-      _id: 'template_2',
-      templateName: 'Project Proposal',
-      templateType: 'proposal',
-      description: 'Standard project proposal template with budget, timeline, and deliverables',
-      usageCount: 45,
-      tags: ['project', 'proposal', 'budget'],
-      createdAt: Date.now() - 172800000,
-      approvalStatus: 'approved',
-    },
-    {
-      _id: 'template_3',
-      templateName: 'Executive Summary',
-      templateType: 'memo',
-      description: 'Executive summary template for board presentations and stakeholder updates',
-      usageCount: 12,
-      tags: ['executive', 'summary', 'board'],
-      createdAt: Date.now() - 259200000,
-      approvalStatus: 'approved',
-    },
-    {
-      _id: 'template_4',
-      templateName: 'Marketing Campaign Report',
-      templateType: 'report',
-      description: 'Campaign performance analysis with metrics and ROI calculations',
-      usageCount: 8,
-      tags: ['marketing', 'campaign', 'analytics'],
-      industry: 'marketing',
-      createdAt: Date.now() - 345600000,
-      approvalStatus: 'approved',
-    },
-  ];
-};
-
 export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
-  companyId,
+  companyId: _companyId,
   templates,
   suggestedTemplates = [],
   onTemplateSelect,
@@ -91,8 +41,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   const [selectedType, setSelectedType] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const fallbackTemplates = useMockTemplates(companyId ?? '');
-  const allTemplates = templates ?? fallbackTemplates;
+  const allTemplates = useMemo(() => templates ?? [], [templates]);
 
   const templateTypes = useMemo(() => {
     const types = ['all', ...new Set(allTemplates.map((t) => t.templateType))];
@@ -288,7 +237,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                   <div>
                     <h3 className="font-medium text-blue-900">AI-Powered Template Matching</h3>
                     <p className="mt-1 text-sm text-blue-700">
-                      Based on your document content, we've found {suggestedTemplatesWithData.length} templates that
+                      Based on your document content, we&apos;ve found {suggestedTemplatesWithData.length} templates that
                       closely match your needs.
                     </p>
                   </div>
