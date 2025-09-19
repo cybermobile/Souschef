@@ -1,10 +1,12 @@
 import { json } from '@vercel/remix';
 import type { LoaderFunctionArgs, MetaFunction } from '@vercel/remix';
 import { useLoaderData } from '@remix-run/react';
+import { useState } from 'react';
 import { ClientOnly } from 'remix-utils/client-only';
 import { Header } from '~/components/header/Header';
 import { DocumentUploader } from '~/components/document/DocumentUploader';
 import { ProcessingStatus } from '~/components/document/ProcessingStatus';
+import type { Id } from '@convex/_generated/dataModel';
 
 export const meta: MetaFunction = () => {
   return [
@@ -24,6 +26,7 @@ export const loader = async (args: LoaderFunctionArgs) => {
 
 export default function Documents() {
   const { documents, processingQueue } = useLoaderData<typeof loader>();
+  const [lastDocumentId, setLastDocumentId] = useState<Id<'uploadedDocuments'> | null>(null);
 
   return (
     <div className="flex size-full flex-col bg-bolt-elements-background-depth-1">
@@ -45,9 +48,8 @@ export default function Documents() {
                 <ClientOnly>
                   {() => (
                     <DocumentUploader
-                      onUpload={(files) => {
-                        console.log('Files uploaded:', files);
-                        // TODO: Handle file upload
+                      onUploadComplete={(documentId) => {
+                        setLastDocumentId(documentId);
                       }}
                       className="mb-6"
                     />
@@ -97,7 +99,11 @@ export default function Documents() {
             <div className="lg:col-span-1">
               <div className="border-bolt-elements-borderColor rounded-lg border bg-bolt-elements-background-depth-2 p-6">
                 <h2 className="text-bolt-elements-textPrimary mb-4 text-xl font-semibold">Processing Status</h2>
-                <ClientOnly>{() => <ProcessingStatus files={processingQueue} className="space-y-3" />}</ClientOnly>
+                <ClientOnly>
+                  {() => (
+                    <ProcessingStatus documentId={lastDocumentId ?? undefined} className="space-y-3" showDetails />
+                  )}
+                </ClientOnly>
               </div>
 
               {/* Quick Stats */}

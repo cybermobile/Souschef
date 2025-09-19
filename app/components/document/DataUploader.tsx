@@ -1,13 +1,18 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { useMutation } from 'convex/react';
+import { useAction, useMutation } from 'convex/react';
+import type { Id } from '@convex/_generated/dataModel';
+import { api } from '@convex/_generated/api';
 import * as Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 
+import { useChefAuth } from '~/components/chat/ChefAuthWrapper';
+import { formatFileSize } from '~/lib/utils/fileSize';
+
 interface DataUploaderProps {
-  companyId: string;
-  sessionId?: string;
-  onUploadComplete: (dataFileId: string) => void;
+  companyId?: string;
+  sessionId?: Id<'sessions'>;
+  onUploadComplete: (dataFileId: Id<'dataFiles'>) => void;
   onUploadError?: (error: string) => void;
   onDataPreview?: (preview: DataPreview) => void;
   maxSize?: number;
@@ -36,9 +41,17 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
   const [progress, setProgress] = useState(0);
   const [dataPreview, setDataPreview] = useState<DataPreview | null>(null);
   const [processingStep, setProcessingStep] = useState<string>('');
+  const [currentFile, setCurrentFile] = useState<File | null>(null);
+  const authState = useChefAuth();
+  const sessionIdToUse = useMemo(() => {
+    if (sessionId) {
+      return sessionId;
+    }
+    return authState.kind === 'fullyLoggedIn' ? authState.sessionId : undefined;
+  }, [authState, sessionId]);
 
-  // This would be the actual Convex mutation
-  // const uploadDataFile = useMutation(api.dataFiles.uploadDataFile);
+  const generateUploadUrl = useMutation(api.mutations.storage.generateUploadUrl);
+  const processDataFile = useAction(api.actions.dataProcessing.processDataFile);
 
   const detectColumnType = (values: any[]): string => {
     const nonEmptyValues = values.filter((v) => v !== null && v !== undefined && v !== '');
@@ -170,6 +183,19 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
     });
   };
 
+  const resolveServerFileType = (preview: DataPreview, file: File): string => {
+    if (preview.fileType === 'csv') {
+      return 'text/csv';
+    }
+    if (preview.fileType === 'xlsx') {
+      return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    }
+    if (preview.fileType === 'xls') {
+      return 'application/vnd.ms-excel';
+    }
+    return file.type || 'application/octet-stream';
+  };
+
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       if (acceptedFiles.length === 0) {
@@ -180,6 +206,7 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
       setUploading(true);
       setProgress(0);
       setDataPreview(null);
+      setCurrentFile(file);
 
       try {
         // Step 1: Parse and analyze the file
@@ -203,26 +230,42 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
         setProcessingStep('Uploading to server...');
         setProgress(70);
 
-        // TODO: Replace with actual Convex upload
-        // const dataFileId = await uploadDataFile({
-        //   companyId,
-        //   sessionId,
-        //   fileName: file.name,
-        //   fileType: preview.fileType,
-        //   fileSize: file.size,
-        //   headers: preview.headers,
-        //   columnTypes: preview.columnTypes,
-        //   totalRows: preview.totalRows,
-        // });
+        const { uploadUrl } = await generateUploadUrl();
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': file.type || 'application/octet-stream',
+          },
+          body: file,
+        });
 
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate upload
+        if (!uploadResponse.ok) {
+          throw new Error('Failed to upload data file');
+        }
+
+        const { storageId } = (await uploadResponse.json()) as { storageId: Id<'_storage'> };
+
+        setProcessingStep('Analyzing data...');
+        setProgress(85);
+
+        const result = await processDataFile({
+          storageId,
+          fileName: file.name,
+          fileType: resolveServerFileType(preview, file),
+          fileSize: file.size,
+          companyId,
+          sessionId: sessionIdToUse,
+          detectTypes: true,
+          findCorrelations: true,
+        });
+
+        if (!result?.success || !result.dataFileId) {
+          throw new Error(result?.error || 'Data processing failed');
+        }
 
         setProgress(100);
         setProcessingStep('Complete!');
-
-        // Mock data file ID
-        const mockDataFileId = `data_${Date.now()}`;
-        onUploadComplete(mockDataFileId);
+        onUploadComplete(result.dataFileId);
       } catch (error) {
         console.error('Data upload failed:', error);
         const errorMessage = error instanceof Error ? error.message : 'Upload failed';
@@ -232,10 +275,19 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
           setUploading(false);
           setProgress(0);
           setProcessingStep('');
+          setCurrentFile(null);
         }, 2000);
       }
     },
-    [companyId, sessionId, onUploadComplete, onUploadError, onDataPreview],
+    [
+      companyId,
+      sessionIdToUse,
+      onUploadComplete,
+      onUploadError,
+      onDataPreview,
+      generateUploadUrl,
+      processDataFile,
+    ],
   );
 
   const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
@@ -249,16 +301,6 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
     multiple: false,
     disabled: uploading,
   });
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) {
-      return '0 Bytes';
-    }
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-  };
 
   return (
     <div className={`w-full space-y-4 ${className}`}>
@@ -293,7 +335,10 @@ export const DataUploader: React.FC<DataUploaderProps> = ({
                   style={{ width: `${progress}%` }}
                 ></div>
               </div>
-              <p className="text-xs text-gray-500">{Math.round(progress)}% complete</p>
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>{Math.round(progress)}% complete</span>
+                {currentFile && <span>{formatFileSize(currentFile.size)}</span>}
+              </div>
             </div>
           </div>
         ) : (

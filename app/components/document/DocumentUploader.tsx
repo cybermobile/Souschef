@@ -1,12 +1,16 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+import { useAction, useMutation } from 'convex/react';
+import type { Id } from '@convex/_generated/dataModel';
+import { api } from '@convex/_generated/api';
+
+import { useChefAuth } from '~/components/chat/ChefAuthWrapper';
+import { formatFileSize } from '~/lib/utils/fileSize';
 
 interface DocumentUploaderProps {
-  companyId: string;
-  sessionId?: string;
-  onUploadComplete: (documentId: string) => void;
+  companyId?: string;
+  sessionId?: Id<'sessions'>;
+  onUploadComplete?: (documentId: Id<'uploadedDocuments'>) => void;
   onUploadError?: (error: string) => void;
   acceptedTypes?: string[];
   maxSize?: number;
@@ -25,9 +29,18 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [currentStep, setCurrentStep] = useState<string>('');
 
-  // This would be the actual Convex mutation - for now using placeholder
-  // const uploadDocument = useMutation(api.documents.uploadDocument);
+  const authState = useChefAuth();
+  const sessionIdToUse = useMemo(() => {
+    if (sessionId) {
+      return sessionId;
+    }
+    return authState.kind === 'fullyLoggedIn' ? authState.sessionId : undefined;
+  }, [authState, sessionId]);
+
+  const generateUploadUrl = useMutation(api.mutations.storage.generateUploadUrl);
+  const processDocument = useAction(api.actions.documentProcessing.processUploadedDocument);
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -39,36 +52,48 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
       setUploadedFile(file);
       setUploading(true);
       setProgress(0);
+      setCurrentStep('Preparing upload...');
 
       try {
-        // Simulate file upload progress
-        const progressInterval = setInterval(() => {
-          setProgress((prev) => {
-            if (prev >= 90) {
-              clearInterval(progressInterval);
-              return 90;
-            }
-            return prev + Math.random() * 15;
-          });
-        }, 200);
+        setProgress(10);
+        const { uploadUrl } = await generateUploadUrl();
 
-        // TODO: Replace with actual Convex upload
-        // const documentId = await uploadDocument({
-        //   companyId,
-        //   sessionId,
-        //   fileName: file.name,
-        //   fileType: file.type || getFileTypeFromName(file.name),
-        //   fileSize: file.size,
-        // });
+        setCurrentStep('Uploading document...');
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': file.type || 'application/octet-stream',
+          },
+          body: file,
+        });
 
-        // Simulate processing time
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        if (!uploadResponse.ok) {
+          throw new Error('Failed to upload document');
+        }
+
+        const { storageId } = (await uploadResponse.json()) as { storageId: Id<'_storage'> };
+
+        setProgress(60);
+        setCurrentStep('Processing document...');
+
+        const result = await processDocument({
+          storageId,
+          fileName: file.name,
+          fileType: file.type || getFileTypeFromName(file.name),
+          fileSize: file.size,
+          companyId,
+          sessionId: sessionIdToUse,
+          extractStructure: true,
+          generateEmbedding: true,
+        });
+
+        if (!result?.success || !result.documentId) {
+          throw new Error(result?.error || 'Document processing failed');
+        }
 
         setProgress(100);
-
-        // Mock document ID for now
-        const mockDocumentId = `doc_${Date.now()}`;
-        onUploadComplete(mockDocumentId);
+        setCurrentStep('Complete');
+        onUploadComplete?.(result.documentId);
       } catch (error) {
         console.error('Upload failed:', error);
         const errorMessage = error instanceof Error ? error.message : 'Upload failed';
@@ -78,10 +103,11 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
         setTimeout(() => {
           setProgress(0);
           setUploadedFile(null);
+          setCurrentStep('');
         }, 2000);
       }
     },
-    [companyId, sessionId, onUploadComplete, onUploadError],
+    [companyId, sessionIdToUse, onUploadComplete, onUploadError, generateUploadUrl, processDocument],
   );
 
   const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
@@ -114,16 +140,6 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
       default:
         return 'application/octet-stream';
     }
-  };
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) {
-      return '0 Bytes';
-    }
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   };
 
   return (
@@ -162,7 +178,7 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
                 </div>
               </div>
               <div className="flex justify-between text-xs text-gray-500">
-                <span>{Math.round(progress)}% complete</span>
+                <span>{currentStep}</span>
                 {uploadedFile && <span>{formatFileSize(uploadedFile.size)}</span>}
               </div>
             </div>

@@ -1,20 +1,13 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useQuery } from 'convex/react';
+import type { Id } from '@convex/_generated/dataModel';
+import { api } from '@convex/_generated/api';
 
 interface ProcessingStatusProps {
-  documentId?: string;
-  dataFileId?: string;
+  documentId?: Id<'uploadedDocuments'>;
+  dataFileId?: Id<'dataFiles'>;
   showDetails?: boolean;
   className?: string;
-}
-
-interface ProcessingState {
-  status: 'uploaded' | 'extracting' | 'analyzing' | 'embedding' | 'matching' | 'rewriting' | 'completed' | 'failed';
-  progress: number;
-  currentStep: string;
-  error?: string;
-  startTime?: number;
-  estimatedTimeRemaining?: number;
 }
 
 const statusConfig = {
@@ -26,27 +19,9 @@ const statusConfig = {
   rewriting: { label: 'Applying Template', color: 'yellow', icon: '✍️' },
   completed: { label: 'Complete', color: 'green', icon: '✅' },
   failed: { label: 'Failed', color: 'red', icon: '❌' },
-};
+} as const;
 
-// Mock data for development - replace with actual Convex query
-const useMockProcessingStatus = (id?: string): ProcessingState | null => {
-  if (!id) {
-    return null;
-  }
-
-  // This would be replaced with actual Convex queries:
-  // const documentStatus = useQuery(api.documents.getProcessingStatus, { documentId });
-  // const dataFileStatus = useQuery(api.dataFiles.getProcessingStatus, { dataFileId });
-
-  // Mock processing state for demonstration
-  return {
-    status: 'matching',
-    progress: 65,
-    currentStep: 'Analyzing document structure and finding matching templates...',
-    startTime: Date.now() - 30000, // Started 30 seconds ago
-    estimatedTimeRemaining: 15000, // 15 seconds remaining
-  };
-};
+type StatusKey = keyof typeof statusConfig;
 
 export const ProcessingStatus: React.FC<ProcessingStatusProps> = ({
   documentId,
@@ -54,7 +29,52 @@ export const ProcessingStatus: React.FC<ProcessingStatusProps> = ({
   showDetails = true,
   className = '',
 }) => {
-  const processingState = useMockProcessingStatus(documentId || dataFileId);
+  const documentStatus = useQuery(
+    documentId ? api.queries.uploadedDocuments.getProcessingStatus : 'skip',
+    documentId ? { documentId } : 'skip',
+  );
+  const dataFileStatus = useQuery(
+    dataFileId ? api.queries.dataFiles.getProcessingStatus : 'skip',
+    dataFileId ? { dataFileId } : 'skip',
+  );
+
+  const processingState = useMemo(() => {
+    const status = documentId ? documentStatus : dataFileStatus;
+    if (!status) {
+      return null;
+    }
+
+    const statusKey = (status.status as StatusKey) ?? 'uploaded';
+    const currentStepText = (() => {
+      switch (statusKey) {
+        case 'extracting':
+          return 'Extracting content from the uploaded file...';
+        case 'analyzing':
+          return 'Analyzing structure and content...';
+        case 'embedding':
+          return 'Generating embeddings for search...';
+        case 'matching':
+          return 'Matching against templates and past documents...';
+        case 'rewriting':
+          return 'Applying template instructions...';
+        case 'completed':
+          return 'Processing complete';
+        case 'failed':
+          return status.error ?? 'Processing failed';
+        default:
+          return 'Queued for processing';
+      }
+    })();
+
+    return {
+      status: statusKey,
+      progress: status.progress ?? 0,
+      currentStep: currentStepText,
+      error: status.error ?? undefined,
+      startTime: status.startTime ?? undefined,
+      endTime: status.endTime ?? undefined,
+    };
+  }, [documentId, documentStatus, dataFileId, dataFileStatus]);
 
   if (!processingState) {
     return null;
@@ -64,7 +84,7 @@ export const ProcessingStatus: React.FC<ProcessingStatusProps> = ({
   const isProcessing = !['completed', 'failed'].includes(processingState.status);
 
   const formatTime = (milliseconds: number): string => {
-    const seconds = Math.floor(milliseconds / 1000);
+    const seconds = Math.max(0, Math.floor(milliseconds / 1000));
     if (seconds < 60) {
       return `${seconds}s`;
     }
@@ -95,21 +115,15 @@ export const ProcessingStatus: React.FC<ProcessingStatusProps> = ({
 
   return (
     <div className={`rounded-lg border border-gray-200 bg-white p-4 ${className}`}>
-      {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <span className="text-2xl">{config.icon}</span>
           <div>
             <h3 className="text-sm font-medium text-gray-900">{config.label}</h3>
-            <p className="text-xs text-gray-500">
-              {processingState.status === 'failed' && processingState.error
-                ? processingState.error
-                : processingState.currentStep}
-            </p>
+            <p className="text-xs text-gray-500">{processingState.currentStep}</p>
           </div>
         </div>
 
-        {/* Status indicator */}
         <div className="flex items-center space-x-2">
           {isProcessing && <div className="size-4 animate-spin rounded-full border-b-2 border-gray-600"></div>}
           <span
@@ -126,12 +140,11 @@ export const ProcessingStatus: React.FC<ProcessingStatusProps> = ({
         </div>
       </div>
 
-      {/* Progress bar */}
       {isProcessing && (
         <div className="mb-4">
           <div className="mb-1 flex justify-between text-xs text-gray-600">
             <span>Progress</span>
-            <span>{processingState.progress}%</span>
+            <span>{Math.round(processingState.progress)}%</span>
           </div>
           <div className="h-2 w-full rounded-full bg-gray-200">
             <div
@@ -147,10 +160,9 @@ export const ProcessingStatus: React.FC<ProcessingStatusProps> = ({
         </div>
       )}
 
-      {/* Detailed steps */}
       {showDetails && (
         <div className="space-y-3">
-          {getProcessingSteps().map((step, index) => (
+          {getProcessingSteps().map((step) => (
             <div key={step.key} className="flex items-center space-x-3">
               <div className="shrink-0">
                 {step.completed ? (
@@ -188,17 +200,15 @@ export const ProcessingStatus: React.FC<ProcessingStatusProps> = ({
         </div>
       )}
 
-      {/* Timing information */}
-      {(processingState.startTime || processingState.estimatedTimeRemaining) && (
+      {(processingState.startTime || processingState.endTime) && (
         <div className="mt-4 flex justify-between border-t border-gray-100 pt-3 text-xs text-gray-500">
           {processingState.startTime && <span>Running for {formatTime(Date.now() - processingState.startTime)}</span>}
-          {processingState.estimatedTimeRemaining && isProcessing && (
-            <span>~{formatTime(processingState.estimatedTimeRemaining)} remaining</span>
+          {processingState.endTime && !isProcessing && processingState.startTime && (
+            <span>Completed in {formatTime(processingState.endTime - processingState.startTime)}</span>
           )}
         </div>
       )}
 
-      {/* Error details */}
       {processingState.status === 'failed' && processingState.error && (
         <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-3">
           <div className="flex">
@@ -215,18 +225,6 @@ export const ProcessingStatus: React.FC<ProcessingStatusProps> = ({
               <p className="mt-1 text-sm text-red-700">{processingState.error}</p>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Success actions */}
-      {processingState.status === 'completed' && (
-        <div className="mt-4 flex space-x-3">
-          <button className="flex-1 rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700">
-            View Results
-          </button>
-          <button className="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">
-            Download
-          </button>
         </div>
       )}
     </div>

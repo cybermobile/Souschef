@@ -1,28 +1,37 @@
 "use node";
 
+import { Buffer } from "node:buffer";
 import { action } from "../_generated/server";
 import { v } from "convex/values";
 import { api } from "../_generated/api";
+import { getCurrentMember } from "../sessions";
+import type { Id } from "../_generated/dataModel";
 
 export const processUploadedDocument: any = action({
   args: {
-    fileId: v.string(),
+    storageId: v.id("_storage"),
     fileName: v.string(),
     fileType: v.string(),
-    fileUrl: v.string(),
-    companyId: v.string(),
+    fileSize: v.optional(v.number()),
+    companyId: v.optional(v.string()),
+    sessionId: v.optional(v.id("sessions")),
     extractStructure: v.optional(v.boolean()),
     generateEmbedding: v.optional(v.boolean()),
   },
-  handler: async (ctx, args): Promise<{ success: boolean; documentId?: string; extractedText?: string; structure?: any; metadata?: any; error?: string }> => {
+  handler: async (
+    ctx,
+    args,
+  ): Promise<{ success: boolean; documentId?: Id<"uploadedDocuments">; extractedText?: string; structure?: any; metadata?: any; error?: string }> => {
     try {
-      // Download file from storage
-      const response = await fetch(args.fileUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch file: ${response.statusText}`);
+      const processingStart = Date.now();
+      const member = await getCurrentMember(ctx);
+      const fileBuffer = await ctx.storage.get(args.storageId);
+      if (!fileBuffer) {
+        throw new Error("Unable to read uploaded document from storage");
       }
 
-      const buffer = await response.arrayBuffer();
+      const buffer = Buffer.from(fileBuffer);
+      const fileUrl = await ctx.storage.getUrl(args.storageId);
       let extractedText = "";
       let metadata: any = {};
 
@@ -30,7 +39,7 @@ export const processUploadedDocument: any = action({
       if (args.fileType === "application/pdf") {
         // PDF processing with pdf-parse
         const pdfParse = await import("pdf-parse");
-        const pdfData = await pdfParse.default(Buffer.from(buffer));
+        const pdfData = await pdfParse.default(buffer);
         extractedText = pdfData.text;
         metadata = {
           pageCount: pdfData.numpages,
@@ -40,7 +49,7 @@ export const processUploadedDocument: any = action({
       } else if (args.fileType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
         // Word document processing with mammoth
         const mammoth = await import("mammoth");
-        const result = await mammoth.extractRawText({ buffer: Buffer.from(buffer) });
+        const result = await mammoth.extractRawText({ buffer });
         extractedText = result.value;
         metadata = {
           messages: result.messages,
@@ -73,23 +82,28 @@ export const processUploadedDocument: any = action({
       }
 
       // Store processed document
-      const documentId: string = await ctx.runMutation(api.mutations.uploadedDocuments.create, {
-        companyId: args.companyId,
-        userId: "temp_user_id" as any, // Will need proper user ID from auth context
+      const completedAt = Date.now();
+      const documentId = await ctx.runMutation(api.mutations.uploadedDocuments.create, {
+        companyId: args.companyId ?? member.cachedProfile?.id ?? member._id,
+        userId: member._id,
+        sessionId: args.sessionId,
         fileName: args.fileName,
         fileType: args.fileType,
-        fileSize: buffer.byteLength,
-        fileUrl: args.fileUrl,
+        fileSize: args.fileSize ?? buffer.byteLength,
+        fileUrl,
         originalContent: extractedText,
         extractedText,
-        documentStructure: JSON.stringify(structure),
+        documentStructure: structure ? JSON.stringify(structure) : undefined,
+        documentType: metadata?.info?.Title ?? undefined,
+        wordCount: structure?.wordCount,
+        pageCount: metadata?.numpages ?? metadata?.info?.Pages ?? undefined,
         embedding: embedding,
         processingStatus: "completed",
         processingProgress: 100,
-        processingStartTime: Date.now(),
-        processingEndTime: Date.now(),
-        uploadedAt: Date.now(),
-        processedAt: Date.now(),
+        processingStartTime: processingStart,
+        processingEndTime: completedAt,
+        uploadedAt: processingStart,
+        processedAt: completedAt,
       });
 
       return {

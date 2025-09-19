@@ -1,29 +1,46 @@
 "use node";
 
+import { Buffer } from "node:buffer";
 import { action } from "../_generated/server";
 import { v } from "convex/values";
 import { api } from "../_generated/api";
+import { getCurrentMember } from "../sessions";
+import type { Id } from "../_generated/dataModel";
 
 export const processDataFile: any = action({
   args: {
-    fileId: v.string(),
+    storageId: v.id("_storage"),
     fileName: v.string(),
     fileType: v.string(),
-    fileUrl: v.string(),
-    companyId: v.string(),
+    fileSize: v.optional(v.number()),
+    companyId: v.optional(v.string()),
+    sessionId: v.optional(v.id("sessions")),
     sampleSize: v.optional(v.number()),
     detectTypes: v.optional(v.boolean()),
     findCorrelations: v.optional(v.boolean()),
   },
-  handler: async (ctx, args): Promise<{ success: boolean; dataFileId?: string; headers?: string[]; rowCount?: number; analysis?: any; correlations?: any; sampleData?: any[]; error?: string }> => {
+  handler: async (
+    ctx,
+    args,
+  ): Promise<{
+    success: boolean;
+    dataFileId?: Id<"dataFiles">;
+    headers?: string[];
+    rowCount?: number;
+    analysis?: any;
+    correlations?: any;
+    sampleData?: any[];
+    error?: string;
+  }> => {
     try {
-      // Download file from storage
-      const response = await fetch(args.fileUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch file: ${response.statusText}`);
+      const processingStart = Date.now();
+      const member = await getCurrentMember(ctx);
+      const fileBuffer = await ctx.storage.get(args.storageId);
+      if (!fileBuffer) {
+        throw new Error("Unable to read uploaded data file from storage");
       }
 
-      const buffer = await response.arrayBuffer();
+      const buffer = Buffer.from(fileBuffer);
       let parsedData: any[] = [];
       let headers: string[] = [];
 
@@ -85,13 +102,16 @@ export const processDataFile: any = action({
       }));
 
       // Store processed data file
-      const dataFileId: string = await ctx.runMutation(api.mutations.dataFiles.create, {
-        companyId: args.companyId,
-        userId: "temp_user_id" as any, // Will need proper user ID from auth context
+      const fileUrl = await ctx.storage.getUrl(args.storageId);
+      const completedAt = Date.now();
+      const dataFileId = await ctx.runMutation(api.mutations.dataFiles.create, {
+        companyId: args.companyId ?? member.cachedProfile?.id ?? member._id,
+        userId: member._id,
+        sessionId: args.sessionId,
         fileName: args.fileName,
         fileType: args.fileType,
-        fileSize: buffer.byteLength,
-        fileUrl: args.fileUrl,
+        fileSize: args.fileSize ?? buffer.byteLength,
+        fileUrl,
         columnHeaders: headers,
         columnTypes,
         rowCount: parsedData.length,
@@ -102,8 +122,8 @@ export const processDataFile: any = action({
         schemaEmbedding: [], // Would generate embedding for schema
         processingStatus: "completed",
         processingProgress: 100,
-        uploadedAt: Date.now(),
-        processedAt: Date.now(),
+        uploadedAt: processingStart,
+        processedAt: completedAt,
       });
 
       return {
