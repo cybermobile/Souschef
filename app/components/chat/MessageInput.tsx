@@ -38,6 +38,7 @@ import { PencilSquareIcon } from '@heroicons/react/24/outline';
 import { ChatBubbleLeftIcon, DocumentArrowUpIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@workos-inc/authkit-react';
 import { useConvex } from 'convex/react';
+import { PromptWorkspace } from './PromptWorkspace';
 
 const PROMPT_LENGTH_WARNING_THRESHOLD = 2000;
 
@@ -112,7 +113,9 @@ export const MessageInput = memo(function MessageInput({
   numMessages: number | undefined;
 }) {
   const [isEnhancing, setIsEnhancing] = useState(false);
+  const [workspaceOpen, setWorkspaceOpen] = useState(!chatStarted);
   const sessionId = useConvexSessionIdOrNullOrLoading();
+  const resolvedSessionId = sessionId ?? undefined;
   const chefAuthState = useChefAuth();
   const selectedTeamSlug = useSelectedTeamSlug();
   const convex = useConvex();
@@ -126,6 +129,16 @@ export const MessageInput = memo(function MessageInput({
   useEffect(() => {
     messageInputStore.set(searchParams.get('prefill') || Cookies.get(PROMPT_COOKIE_KEY) || '');
   }, [searchParams]);
+
+  useEffect(() => {
+    setWorkspaceOpen(!chatStarted);
+  }, [chatStarted]);
+
+  useEffect(() => {
+    if (isStreaming) {
+      setWorkspaceOpen(false);
+    }
+  }, [isStreaming]);
 
   // Send messages
   const handleSend = useCallback(async () => {
@@ -224,7 +237,7 @@ export const MessageInput = memo(function MessageInput({
     } finally {
       setIsEnhancing(false);
     }
-  }, [input, convex]);
+  }, [input, convex, selectedTeamSlug]);
 
   // Helper to insert template and select '[...]'
   const insertTemplate = useCallback(
@@ -250,10 +263,20 @@ export const MessageInput = memo(function MessageInput({
     [input],
   );
 
+  const workspaceEnabled = true;
+
   return (
     <div className="relative z-20 mx-auto w-full max-w-chat rounded-xl shadow transition-all duration-200">
       <div className="rounded-xl bg-background-primary/75 backdrop-blur-md">
-        <div className="rounded-t-xl border transition-all has-[textarea:focus]:border-border-selected">
+        {workspaceEnabled && workspaceOpen && (
+          <PromptWorkspace chatStarted={chatStarted} isStreaming={isStreaming} sessionId={resolvedSessionId} />
+        )}
+        <div
+          className={classNames(
+            'border transition-all has-[textarea:focus]:border-border-selected',
+            workspaceEnabled && workspaceOpen ? 'rounded-t-none border-t-0' : 'rounded-t-xl',
+          )}
+        >
           <TextareaWithHighlights
             onKeyDown={handleKeyDown}
             onChange={handleChange}
@@ -277,6 +300,17 @@ export const MessageInput = memo(function MessageInput({
             'flex items-center gap-2 border rounded-b-xl border-t-0 bg-background-secondary/80 p-1.5 text-sm flex-wrap',
           )}
         >
+          {chefAuthState.kind === 'fullyLoggedIn' && (
+            <Button
+              variant="neutral"
+              inline
+              size="xs"
+              icon={<DocumentArrowUpIcon className="size-4" />}
+              onClick={() => setWorkspaceOpen((open) => !open)}
+            >
+              {workspaceOpen ? 'Hide workspace' : 'Document tools'}
+            </Button>
+          )}
           {chefAuthState.kind === 'fullyLoggedIn' && (
             <ModelSelector modelSelection={modelSelection} setModelSelection={setModelSelection} size="sm" />
           )}

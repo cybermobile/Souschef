@@ -42,6 +42,22 @@ export const listForSession = query({
       .order("desc")
       .take(50);
 
-    return documents.filter((doc) => !args.sessionId || doc.sessionId === args.sessionId);
+    return documents
+      .filter((doc) => !args.sessionId || doc.sessionId === args.sessionId)
+      .map((doc) => ({
+        _id: doc._id,
+        sessionId: doc.sessionId,
+        fileName: doc.fileName,
+        fileType: doc.fileType,
+        fileSize: doc.fileSize,
+        uploadedAt: doc.uploadedAt,
+        processingStatus: doc.processingStatus,
+        processingProgress: doc.processingProgress,
+        extractedText: doc.extractedText,
+        documentType: doc.documentType,
+        wordCount: doc.wordCount,
+        pageCount: doc.pageCount,
+        documentStructure: doc.documentStructure,
+      }));
   },
 });

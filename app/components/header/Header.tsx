@@ -28,7 +28,7 @@ export function Header({ hideSidebarIcon = false }: { hideSidebarIcon?: boolean 
   const location = useLocation();
 
   const sessionId = useConvexSessionIdOrNullOrLoading();
-  const isLoggedIn = sessionId !== null;
+  const isLoggedIn = typeof sessionId === 'string';
   const showSidebarIcon = !hideSidebarIcon && isLoggedIn;
 
   const profile = useStore(profileStore);
@@ -55,10 +55,12 @@ export function Header({ hideSidebarIcon = false }: { hideSidebarIcon?: boolean 
     { href: '/reports', label: 'Reports' },
   ];
 
+  const showNavLinks = isLoggedIn;
+
   return (
     <header
       className={
-        'flex h-[var(--header-height)] items-center overflow-x-auto overflow-y-hidden border-b border-bolt-elements-borderColor bg-bolt-elements-background-depth-1 p-5 text-bolt-elements-textPrimary'
+        'border-bolt-elements-borderColor text-bolt-elements-textPrimary flex h-[var(--header-height)] items-center overflow-x-auto overflow-y-hidden border-b bg-bolt-elements-background-depth-1 p-5'
       }
     >
       <div className="z-40 flex cursor-pointer items-center gap-4">
@@ -77,29 +79,31 @@ export function Header({ hideSidebarIcon = false }: { hideSidebarIcon?: boolean 
         </a>
 
         {/* Navigation Links */}
-        <nav className="ml-8 flex items-center space-x-6">
-          {navItems.map(({ href, label }) => {
-            const isActive = location.pathname === href || location.pathname.startsWith(`${href}/`);
-            return (
-              <a
-                key={href}
-                href={href}
-                className={`text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'text-bolt-elements-textPrimary'
-                    : 'text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary'
-                }`}
-                aria-current={isActive ? 'page' : undefined}
-              >
-                {label}
-              </a>
-            );
-          })}
-        </nav>
+        {showNavLinks && (
+          <nav className="ml-8 flex items-center space-x-6">
+            {navItems.map(({ href, label }) => {
+              const isActive = location.pathname === href || location.pathname.startsWith(`${href}/`);
+              return (
+                <a
+                  key={href}
+                  href={href}
+                  className={`text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'text-bolt-elements-textPrimary'
+                      : 'text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary'
+                  }`}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  {label}
+                </a>
+              );
+            })}
+          </nav>
+        )}
       </div>
       <>
         {chat.started && (
-          <span className="flex-1 truncate px-4 text-center text-bolt-elements-textPrimary">
+          <span className="text-bolt-elements-textPrimary flex-1 truncate px-4 text-center">
             <ClientOnly>{() => <ChatDescription />}</ClientOnly>
           </span>
         )}
@@ -137,7 +141,7 @@ export function Header({ hideSidebarIcon = false }: { hideSidebarIcon?: boolean 
                         decoding="sync"
                       />
                     ) : (
-                      <PersonIcon className="size-8 min-w-8 rounded-full border text-bolt-elements-textSecondary" />
+                      <PersonIcon className="text-bolt-elements-textSecondary size-8 min-w-8 rounded-full border" />
                     ),
                   }}
                 >
