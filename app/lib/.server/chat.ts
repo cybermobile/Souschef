@@ -9,6 +9,7 @@ import { disabledText, noTokensText } from '~/lib/convexUsage';
 import type { ModelProvider } from '~/lib/.server/llm/provider';
 import { getEnv } from '~/lib/.server/env';
 import type { PromptCharacterCounts } from 'chef-agent/ChatContextManager';
+import type { DocumentContextSummary } from '~/lib/common/documentContext';
 
 type Messages = Message[];
 
@@ -71,9 +72,18 @@ export async function chatAction({ request }: ActionFunctionArgs) {
     featureFlags: {
       enableResend?: boolean;
     };
+    documentContext?: DocumentContextSummary[];
   };
-  const { messages, firstUserMessage, chatInitialId, deploymentName, token, teamSlug, recordRawPromptsForDebugging } =
-    body;
+  const {
+    messages,
+    firstUserMessage,
+    chatInitialId,
+    deploymentName,
+    token,
+    teamSlug,
+    recordRawPromptsForDebugging,
+    documentContext,
+  } = body;
 
   if (getEnv('DISABLE_BEDROCK') === '1' && body.modelProvider === 'Bedrock') {
     body.modelProvider = 'Anthropic';
@@ -186,6 +196,7 @@ export async function chatAction({ request }: ActionFunctionArgs) {
       featureFlags: {
         enableResend: body.featureFlags.enableResend ?? false,
       },
+      documentContext: documentContext ?? [],
     });
 
     return new Response(dataStream, {

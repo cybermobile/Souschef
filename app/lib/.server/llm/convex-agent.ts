@@ -36,6 +36,7 @@ import { lookupDocsTool } from 'chef-agent/tools/lookupDocs';
 import { addEnvironmentVariablesTool } from 'chef-agent/tools/addEnvironmentVariables';
 import { getConvexDeploymentNameTool } from 'chef-agent/tools/getConvexDeploymentName';
 import type { PromptCharacterCounts } from 'chef-agent/ChatContextManager';
+import { formatDocumentContextForPrompt, type DocumentContextSummary } from '~/lib/common/documentContext';
 
 type Messages = Message[];
 
@@ -58,6 +59,7 @@ export async function convexAgent(args: {
   featureFlags: {
     enableResend: boolean;
   };
+  documentContext: DocumentContextSummary[];
 }) {
   const {
     chatInitialId,
@@ -73,6 +75,7 @@ export async function convexAgent(args: {
     collapsedMessages,
     promptCharacterCounts,
     featureFlags,
+    documentContext,
   } = args;
   console.debug('Starting agent with model provider', modelProvider);
   if (userApiKey) {
@@ -102,7 +105,7 @@ export async function convexAgent(args: {
   tools.view = viewTool;
   tools.edit = editTool;
 
-  const messagesForDataStream: CoreMessage[] = [
+  const systemMessages: CoreMessage[] = [
     {
       role: 'system' as const,
       content: ROLE_SYSTEM_PROMPT,
@@ -111,8 +114,19 @@ export async function convexAgent(args: {
       role: 'system' as const,
       content: generalSystemPrompt(opts),
     },
-    ...cleanupAssistantMessages(messages),
   ];
+
+  if (documentContext.length > 0) {
+    const contextContent = formatDocumentContextForPrompt(documentContext);
+    if (contextContent.trim().length > 0) {
+      systemMessages.push({
+        role: 'system',
+        content: contextContent,
+      });
+    }
+  }
+
+  const messagesForDataStream: CoreMessage[] = [...systemMessages, ...cleanupAssistantMessages(messages)];
 
   if (modelProvider === 'Bedrock') {
     messagesForDataStream[messagesForDataStream.length - 1].providerOptions = {
