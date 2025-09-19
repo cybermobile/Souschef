@@ -40,7 +40,16 @@ export const processDataFile = action({
       }
 
       const arrayBuffer =
-        storedFile instanceof Blob ? await storedFile.arrayBuffer() : storedFile;
+        storedFile instanceof ArrayBuffer
+          ? storedFile
+          : storedFile instanceof Blob
+            ? await storedFile.arrayBuffer()
+            : null;
+
+      if (!arrayBuffer) {
+        throw new Error("Unable to decode uploaded data file");
+      }
+
       const buffer = Buffer.from(arrayBuffer);
       let parsedData: any[] = [];
       let headers: string[] = [];
@@ -61,7 +70,7 @@ export const processDataFile = action({
       } else if (args.fileName.endsWith('.xlsx') || args.fileName.endsWith('.xls')) {
         // Excel processing with xlsx
         const XLSX = await import("xlsx");
-        const workbook = XLSX.read(buffer, { type: 'array' });
+        const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
