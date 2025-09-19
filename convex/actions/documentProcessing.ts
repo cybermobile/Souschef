@@ -52,8 +52,15 @@ export const processUploadedDocument = action({
         };
       } else if (args.fileType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
         // Word document processing with mammoth
-        const mammoth = await import("mammoth");
-        const result = await mammoth.extractRawText({ buffer });
+        const mammothModule = await import("mammoth");
+        const extractRawText =
+          mammothModule.extractRawText ?? mammothModule.default?.extractRawText;
+
+        if (typeof extractRawText !== "function") {
+          throw new Error("Failed to load Word document parser");
+        }
+
+        const result = await extractRawText({ buffer });
         extractedText = result.value;
         metadata = {
           messages: result.messages,
