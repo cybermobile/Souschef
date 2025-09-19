@@ -1,6 +1,7 @@
 import { useStore } from '@nanostores/react';
 import { useState } from 'react';
 import { ClientOnly } from 'remix-utils/client-only';
+import { useLocation } from '@remix-run/react';
 import { chatStore } from '~/lib/stores/chatId';
 import { HeaderActionButtons } from './HeaderActionButtons.client';
 import { ChatDescription } from '~/components/header/ChatDescription.client';
@@ -24,6 +25,7 @@ import { useAuth } from '@workos-inc/authkit-react';
 export function Header({ hideSidebarIcon = false }: { hideSidebarIcon?: boolean }) {
   const chat = useStore(chatStore);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
 
   const sessionId = useConvexSessionIdOrNullOrLoading();
   const isLoggedIn = sessionId !== null;
@@ -46,9 +48,20 @@ export function Header({ hideSidebarIcon = false }: { hideSidebarIcon?: boolean 
     window.location.pathname = '/settings';
   };
 
+  const navItems = [
+    { href: '/documents', label: 'Documents' },
+    { href: '/templates', label: 'Templates' },
+    { href: '/visualize', label: 'Visualize' },
+    { href: '/reports', label: 'Reports' },
+  ];
+
   return (
-    <header className={'flex h-[var(--header-height)] items-center overflow-x-auto overflow-y-hidden border-b p-5'}>
-      <div className="z-40 flex cursor-pointer items-center gap-4 text-content-primary">
+    <header
+      className={
+        'flex h-[var(--header-height)] items-center overflow-x-auto overflow-y-hidden border-b border-bolt-elements-borderColor bg-bolt-elements-background-depth-1 p-5 text-bolt-elements-textPrimary'
+      }
+    >
+      <div className="z-40 flex cursor-pointer items-center gap-4">
         {showSidebarIcon && (
           <HamburgerMenuIcon
             className="shrink-0"
@@ -65,35 +78,28 @@ export function Header({ hideSidebarIcon = false }: { hideSidebarIcon?: boolean 
 
         {/* Navigation Links */}
         <nav className="ml-8 flex items-center space-x-6">
-          <a
-            href="/documents"
-            className="text-sm font-medium text-content-secondary hover:text-content-primary transition-colors"
-          >
-            Documents
-          </a>
-          <a
-            href="/templates"
-            className="text-sm font-medium text-content-secondary hover:text-content-primary transition-colors"
-          >
-            Templates
-          </a>
-          <a
-            href="/visualize"
-            className="text-sm font-medium text-content-secondary hover:text-content-primary transition-colors"
-          >
-            Visualize
-          </a>
-          <a
-            href="/reports"
-            className="text-sm font-medium text-content-secondary hover:text-content-primary transition-colors"
-          >
-            Reports
-          </a>
+          {navItems.map(({ href, label }) => {
+            const isActive = location.pathname === href || location.pathname.startsWith(`${href}/`);
+            return (
+              <a
+                key={href}
+                href={href}
+                className={`text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'text-bolt-elements-textPrimary'
+                    : 'text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary'
+                }`}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                {label}
+              </a>
+            );
+          })}
         </nav>
       </div>
       <>
         {chat.started && (
-          <span className="flex-1 truncate px-4 text-center text-content-primary">
+          <span className="flex-1 truncate px-4 text-center text-bolt-elements-textPrimary">
             <ClientOnly>{() => <ChatDescription />}</ClientOnly>
           </span>
         )}
@@ -131,16 +137,16 @@ export function Header({ hideSidebarIcon = false }: { hideSidebarIcon?: boolean 
                         decoding="sync"
                       />
                     ) : (
-                      <PersonIcon className="size-8 min-w-8 rounded-full border text-content-secondary" />
+                      <PersonIcon className="size-8 min-w-8 rounded-full border text-bolt-elements-textSecondary" />
                     ),
                   }}
                 >
                   <MenuItemComponent action={handleSettingsClick}>
-                    <GearIcon className="text-content-secondary" />
+                    <GearIcon className="text-bolt-elements-textSecondary" />
                     Settings & Usage
                   </MenuItemComponent>
                   <MenuItemComponent action={handleLogout}>
-                    <ExitIcon className="text-content-secondary" />
+                    <ExitIcon className="text-bolt-elements-textSecondary" />
                     Log out
                   </MenuItemComponent>
                 </MenuComponent>
