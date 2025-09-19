@@ -114,6 +114,7 @@
     "html2canvas": "^1.4.1",
     "isbot": "^4.4.0",
     "istextorbinary": "^9.5.0",
+    "jose": "^5.9.6",
     "js-cookie": "^3.0.5",
     "jspdf": "^3.0.3",
     "jszip": "^3.10.1",

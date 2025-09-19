@@ -264,6 +264,9 @@ importers:
       istextorbinary:
         specifier: ^9.5.0
         version: 9.5.0
+      jose:
+        specifier: ^5.9.6
+        version: 5.9.6
       js-cookie:
         specifier: ^3.0.5
         version: 3.0.5
